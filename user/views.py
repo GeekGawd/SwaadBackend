@@ -28,15 +28,15 @@ def send_otp_email(email,body,subject):
 
     send_mail(
     subject,
-    f"{body} {otp}.\n This OTP will be valid for 1 minute." 
-    ,'info.the.flow.app@gmail.com',
+    f"{body} {otp}.\n This OTP will be valid for 2 minute." 
+    ,'suyashsingh.stem@gmail.com',
     [email],
      fail_silently = False
      ) 
 
     OTP.objects.create(otp=otp, otp_email = email, time_created = time_of_creation)
 
-class PasswordResetView(APIView):
+class PasswordReset(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         request_email = request.data.get("email", )
@@ -51,12 +51,12 @@ class PasswordResetView(APIView):
         return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)
 
 
-class PasswordResetOTPConfirmView(APIView):
+class PasswordResetOTPConfirm(APIView):
     permission_classes = [AllowAny]
     def post(self,request):
         coming_data = request.data
-        request_otp   = coming_data.get("otp",None)
-        request_email = coming_data.get("email",None)
+        request_otp   = coming_data.get("otp",)
+        request_email = coming_data.get("email",)
         current_time = int(time.time())
         if request_email is not None:
             try:
