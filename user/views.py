@@ -15,14 +15,15 @@ class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
 
-
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user"""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
 def send_otp_email(email,body,subject):
+    
     OTP.objects.filter(otp_email__iexact = email).delete()
+
     otp = random.randint(1000,9999)
     time_of_creation = int(time.time())
 
