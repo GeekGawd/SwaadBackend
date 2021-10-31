@@ -10,4 +10,6 @@ urlpatterns = [
     path('token/', views.CreateTokenView.as_view(), name='token'),
     path('password/reset/', views.PasswordReset.as_view(), name='passwordreset'),
     path('password/reset/verify/', views.PasswordResetOTPConfirm.as_view(), name='passwordresetconfirmation'),
+    path('otplogin/', views.loginOTP.as_view(), name='registerotp'),
+    path('otploginverification/', views.loginOTPverification.as_view(), name='registerotpconf'),
 ]

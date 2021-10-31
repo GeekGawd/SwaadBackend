@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Permission
 from rest_framework import generics, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
@@ -69,3 +70,66 @@ class PasswordResetOTPConfirm(APIView):
                 return Response({"detail": "OTP verified Thank You!"}, status = status.HTTP_200_OK )
             return Response({"detail" : "OTP is wrong or alredy expired."},status = status.HTTP_400_BAD_REQUEST)
         return Response({"detail": "Provide an email to reset password."},status = status.HTTP_400_BAD_REQUEST)
+
+class loginOTP(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        
+        request_email = request.data.get("email")
+       
+        if request_email is not None:
+            try:
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                return Response({
+                    'validity':False,
+                    'detail':'There is no such email registered'
+                })
+            send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
+            return Response({"detail":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+            
+            
+class loginOTPverification(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+
+        request_otp   = request.data.get("otp",)
+        request_email = request.data.get("email")
+
+    
+        if request_email is not None:
+            try:
+
+                request_model = OTP.objects.get(otp_email__iexact = request_email)
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                raise Http404
+            if request_model.exists():
+                # old = old.first()
+                otp = request_model.otp
+                email = request_model.otp_email
+                if str(request_otp) == str(otp) and request_email == email:
+                    request_model.validated = True
+                    request_model.save()
+                    return Response({
+                        'validity':True,
+                        'detail':'OTP verified, proceed to registration.'
+                    })
+                else:
+                    return Response({
+                        'validity':False,
+                        'detail':'OTP incorrect.'
+
+                    })
+            else:
+                return Response({
+                        'validity':False,
+                        'detail':'OTP not sent.'
+
+                    })
+        # else:
+        #     return Response({
+        #                 'validity':False,
+        #                 'detail':'Please provide a valid email id.'
+
+        #             })
