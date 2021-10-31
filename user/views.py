@@ -8,6 +8,7 @@ import random, time
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import Http404
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -21,8 +22,8 @@ class CreateTokenView(ObtainAuthToken):
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
 def send_otp_email(email,body,subject):
-    # OTP.objects.filter(otp_email__iexact = email).delete()
-    otp = random.randint(999,9999)
+    OTP.objects.filter(otp_email__iexact = email).delete()
+    otp = random.randint(1000,9999)
     time_of_creation = int(time.time())
 
     send_mail(
@@ -40,23 +41,31 @@ class PasswordResetView(APIView):
     def post(self, request):
         request_email = request.data.get("email", )
 
-        otp = OTP.objects.filter(otp_email = request_email).first()
-
         try:
             user = User.objects.get(email__iexact = request_email)
         except: 
-            return Response({"detail" : "No such account exists"},status = status.HTTP_400_BAD_REQUEST)
+            return Response({"status" : "No such account exists"},status = status.HTTP_400_BAD_REQUEST)
+
+        send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for the Swaad App",subject="[OTP] Password Change for Swaad App") 
+
+        return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)
 
 
-        if (int(time.time() - otp.time_created )):
-            return Response({"detail":"OTP was sent less than a minute ago."},status=status.HTTP_400_BAD_REQUEST)
-
-        # if not user.is_active:
-        #     send_otp_email(request_email, body = f"You have not verified your email {request_email} yet. This email will let you change your  password and Verify your email in a single step. Your OTP for the same is",
-        #     subject= "Verify email and change password OTP for The Flow App")
-        #     return Response({"detail" : "User is registered but not verified. An OTP for verification has been sent to email."}, status = status.HTTP_200_OK)
-
-
-        send_otp_email(request_email, body = "OTP for resetting your password of your The Flow App account is",subject="Password Change OTP for The Flow App") 
-
-        return Response({"detail" : "OTP has been sent to your provided email."}, status = status.HTTP_200_OK)
+class PasswordResetOTPConfirmView(APIView):
+    permission_classes = [AllowAny]
+    def post(self,request):
+        coming_data = request.data
+        request_otp   = coming_data.get("otp",None)
+        request_email = coming_data.get("email",None)
+        current_time = int(time.time())
+        if request_email is not None:
+            try:
+                otpmodel = OTP.objects.get(otp_email__iexact = request_email)
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                raise Http404
+            if otpmodel.otp_email == request_email and otpmodel.otp == request_otp and (current_time - otpmodel.time_created <120):
+                OTP.objects.filter(otp_email__iexact = request_email).delete()
+                return Response({"detail": "OTP verified Thank You!"}, status = status.HTTP_200_OK )
+            return Response({"detail" : "OTP is wrong or alredy expired."},status = status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Provide an email to reset password."},status = status.HTTP_400_BAD_REQUEST)
