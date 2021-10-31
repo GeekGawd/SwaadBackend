@@ -46,7 +46,7 @@ class PasswordReset(APIView):
         except: 
             return Response({"status" : "No such account exists"},status = status.HTTP_400_BAD_REQUEST)
 
-        send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for the Swaad App",subject="[OTP] Password Change for Swaad App") 
+        send_otp_email(request_email, body = "Hi! Sorry for the inconvenience. Here is your OTP for the Swaad App",subject="[OTP] Password Change for Swaad App") 
 
         return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)
 
@@ -57,8 +57,6 @@ class PasswordResetOTPConfirm(APIView):
         data = request.data
         request_otp   = data.get("otp",)
         request_email = data.get("email",)
-        current_time = int(time.time())
-        expiry = current_time + datetime.timedelta(seconds = 180).total_seconds()
 
         if request_email:
             try:
@@ -67,12 +65,15 @@ class PasswordResetOTPConfirm(APIView):
             except:
                 raise Http404
 
+            request_time = otpfields.time_created
+            expiry = request_time + datetime.timedelta(seconds = 180).total_seconds()
+
             if (otpfields.otp_email == request_email and otpfields.otp == request_otp and (otpfields.time_created < expiry)):
 
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
 
             return Response({"status" : "Sorry, you have entered the OTP or it has expired.",
-            "time": str(current_time)},status = status.HTTP_400_BAD_REQUEST)
+            "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
