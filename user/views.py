@@ -54,11 +54,12 @@ class PasswordReset(APIView):
 class PasswordResetOTPConfirm(APIView):
     permission_classes = [AllowAny]
     def post(self,request):
-        coming_data = request.data
-        request_otp   = coming_data.get("otp",)
-        request_email = coming_data.get("email",)
+        data = request.data
+        request_otp   = data.get("otp",)
+        request_email = data.get("email",)
         current_time = int(time.time())
         expiry = current_time + datetime.timedelta(seconds = 180).total_seconds()
+
         if request_email:
             try:
                 otpfields = OTP.objects.get(otp_email__iexact = request_email)
@@ -66,11 +67,12 @@ class PasswordResetOTPConfirm(APIView):
             except:
                 raise Http404
 
-            if (otpfields.otp_email == request_email and otpfields.otp == request_otp and (current_time < expiry)):
+            if (otpfields.otp_email == request_email and otpfields.otp == request_otp and (otpfields.time_created < expiry)):
 
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
-                return Response({"status": "OTP verified Thank You!"}, status = status.HTTP_200_OK)
+                return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
 
-            return Response({"status" : "OTP is wrong or already expired.","time": str(current_time)},status = status.HTTP_400_BAD_REQUEST)
+            return Response({"status" : "Sorry, you have entered the OTP or it has expired.",
+            "time": str(current_time)},status = status.HTTP_400_BAD_REQUEST)
 
-        return Response({"status": "Provide an email to reset password."},status = status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
