@@ -59,12 +59,14 @@ class PasswordResetOTPConfirm(APIView):
         request_otp   = coming_data.get("otp",)
         request_email = coming_data.get("email",)
         current_time = int(time.time())
+        
         if request_email is not None:
             try:
                 otpmodel = OTP.objects.get(otp_email__iexact = request_email)
                 user = User.objects.get(email__iexact = request_email)
             except:
                 raise Http404
+
             if otpmodel.otp_email == request_email and otpmodel.otp == request_otp and (current_time - otpmodel.time_created <120):
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 return Response({"detail": "OTP verified Thank You!"}, status = status.HTTP_200_OK )
@@ -74,10 +76,9 @@ class PasswordResetOTPConfirm(APIView):
 class loginOTP(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        
-        request_email = request.data.get("email")
+        request_email = request.data.get("email",)
        
-        if request_email is not None:
+        if request_email:
             try:
                 user = User.objects.get(email__iexact = request_email)
             except:
@@ -85,8 +86,9 @@ class loginOTP(APIView):
                     'validity':False,
                     'detail':'There is no such email registered'
                 })
-            send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
+            send_otp_email(request_email, body = "Hi! Sorry for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
             return Response({"detail":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+        return Response({"detail":"You have not entered a email"},status = status.HTTP_405_BAD_REQUEST)
             
             
 class loginOTPverification(APIView):
@@ -94,39 +96,32 @@ class loginOTPverification(APIView):
     def post(self, request):
 
         request_otp   = request.data.get("otp",)
-        request_email = request.data.get("email")
+        request_email = request.data.get("email",)
 
     
-        if request_email is not None:
+        if request_email:
             try:
-
                 request_model = OTP.objects.get(otp_email__iexact = request_email)
                 user = User.objects.get(email__iexact = request_email)
             except:
                 raise Http404
-            if request_model.exists():
-                # old = old.first()
-                otp = request_model.otp
-                email = request_model.otp_email
-                if str(request_otp) == str(otp) and request_email == email:
-                    request_model.validated = True
-                    request_model.save()
-                    return Response({
-                        'validity':True,
-                        'detail':'OTP verified, proceed to registration.'
-                    })
-                else:
-                    return Response({
-                        'validity':False,
-                        'detail':'OTP incorrect.'
 
+            otp = request_model.otp
+            email = request_model.otp_email
+
+            if str(request_otp) == str(otp) and request_email == email:
+                user.is_verified = True
+                user.save()
+                return Response({
+                    'validity':True,
+                    'detail':'OTP verified, proceed to registration.'
                     })
             else:
                 return Response({
-                        'validity':False,
-                        'detail':'OTP not sent.'
-
-                    })
+                    'validity':False,
+                    'detail':'OTP incorrect.'
+                })
+                
         # else:
         #     return Response({
         #                 'validity':False,
