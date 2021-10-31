@@ -1,11 +1,10 @@
-from django.contrib.auth.models import Permission
 from rest_framework import generics, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
 from django.core.mail import send_mail
-import random, time
+import random, time, datetime
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -59,72 +58,19 @@ class PasswordResetOTPConfirm(APIView):
         request_otp   = coming_data.get("otp",)
         request_email = coming_data.get("email",)
         current_time = int(time.time())
-        
-        if request_email is not None:
+        expiry = current_time + datetime.timedelta(seconds = 180).total_seconds()
+        if request_email:
             try:
-                otpmodel = OTP.objects.get(otp_email__iexact = request_email)
+                otpfields = OTP.objects.get(otp_email__iexact = request_email)
                 user = User.objects.get(email__iexact = request_email)
             except:
                 raise Http404
 
-            if otpmodel.otp_email == request_email and otpmodel.otp == request_otp and (current_time - otpmodel.time_created <120):
+            if (otpfields.otp_email == request_email and otpfields.otp == request_otp and (current_time < expiry)):
+
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
-                return Response({"detail": "OTP verified Thank You!"}, status = status.HTTP_200_OK )
-            return Response({"detail" : "OTP is wrong or alredy expired."},status = status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "Provide an email to reset password."},status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "OTP verified Thank You!"}, status = status.HTTP_200_OK)
 
-class loginOTP(APIView):
-    permission_classes = [AllowAny]
-    def post(self, request):
-        request_email = request.data.get("email",)
-       
-        if request_email:
-            try:
-                user = User.objects.get(email__iexact = request_email)
-            except:
-                return Response({
-                    'validity':False,
-                    'detail':'There is no such email registered'
-                })
-            send_otp_email(request_email, body = "Hi! Sorry for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
-            return Response({"detail":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
-        return Response({"detail":"You have not entered a email"},status = status.HTTP_405_BAD_REQUEST)
-            
-            
-class loginOTPverification(APIView):
-    permission_classes = [AllowAny]
-    def post(self, request):
+            return Response({"status" : "OTP is wrong or already expired.","time": str(current_time)},status = status.HTTP_400_BAD_REQUEST)
 
-        request_otp   = request.data.get("otp",)
-        request_email = request.data.get("email",)
-
-    
-        if request_email:
-            try:
-                request_model = OTP.objects.get(otp_email__iexact = request_email)
-                user = User.objects.get(email__iexact = request_email)
-            except:
-                raise Http404
-
-            otp = request_model.otp
-            email = request_model.otp_email
-
-            if str(request_otp) == str(otp) and request_email == email:
-                user.is_verified = True
-                user.save()
-                return Response({
-                    'validity':True,
-                    'detail':'OTP verified, proceed to registration.'
-                    })
-            else:
-                return Response({
-                    'validity':False,
-                    'detail':'OTP incorrect.'
-                })
-                
-        # else:
-        #     return Response({
-        #                 'validity':False,
-        #                 'detail':'Please provide a valid email id.'
-
-        #             })
+        return Response({"status": "Provide an email to reset password."},status = status.HTTP_400_BAD_REQUEST)
