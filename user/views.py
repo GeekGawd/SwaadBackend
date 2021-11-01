@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
+from django.utils import timezone
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -16,7 +17,7 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 class CreateTokenView(ObtainAuthToken):
-    """Create a new auth token for user"""
+    """Create a new auth token for user when logging in"""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
@@ -25,7 +26,6 @@ def send_otp_email(email,body,subject):
     OTP.objects.filter(otp_email__iexact = email).delete()
 
     otp = random.randint(1000,9999)
-    time_of_creation = int(time.time())
 
     send_mail(
     subject,
@@ -35,7 +35,7 @@ def send_otp_email(email,body,subject):
      fail_silently = False
      ) 
 
-    OTP.objects.create(otp=otp, otp_email = email, time_created = time_of_creation)
+    OTP.objects.create(otp=otp, otp_email = email)
 
 class PasswordReset(APIView):
     permission_classes = [AllowAny]
@@ -66,15 +66,19 @@ class PasswordResetOTPConfirm(APIView):
             except:
                 raise Http404
 
-            request_time = otpfields.time_created
-            expiry = request_time + datetime.timedelta(seconds = 180).total_seconds()
+            request_time = otpfields.time_created + datetime.timedelta(seconds = 120)
+            current_time = timezone.now()
 
-            if (otpfields.otp_email == request_email and otpfields.otp == request_otp and (otpfields.time_created < expiry)):
+            if request_time < current_time:
+                return Response({"status" : "Sorry, entered OTP has expired.",
+                                 "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
 
-                OTP.objects.filter(otp_email__iexact = request_email).delete()
-                return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
+            if str(otpfields.otp) != str(request_otp):
+                 return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP.",
+                                 "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
 
-            return Response({"status" : "Sorry, you have entered the OTP or it has expired.",
-            "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
+            OTP.objects.filter(otp_email__iexact = request_email).delete()
+            return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
+
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)

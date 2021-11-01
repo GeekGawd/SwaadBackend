@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -35,6 +36,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 class OTP(models.Model):
     otp          = models.IntegerField()
     otp_email    = models.EmailField()
-    time_created = models.IntegerField()
+    time_created = models.DateTimeField(default=timezone.now )
     def __str__(self):
         return f"{self.otp_email} : {self.otp}"
