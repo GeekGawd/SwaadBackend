@@ -1,5 +1,7 @@
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
@@ -11,9 +13,28 @@ from rest_framework.views import APIView
 from django.http import Http404
 
 
-class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system"""
-    serializer_class = UserSerializer
+# class CreateUserView(generics.CreateAPIView):
+#     """Create a new user in the system"""
+#     serializer_class = UserSerializer
+
+class CreateUserView(APIView):
+    def post(self, request):
+        if request.method == 'POST':
+            serializer = UserSerializer(data=request.data)
+            data = {}
+            if serializer.is_valid():
+                user = serializer.save()
+                data['response'] = "successfully registered a new user"
+                data['email'] = user.email
+                data['username'] = user.name
+                token = Token.objects.get(user=user).key
+                data['token'] = token
+            else:
+                data = serializer.errors
+            return Response(data)
+
+
+    
 
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user"""
