@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives, EmailMessage
 import random, time, datetime
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -14,33 +14,27 @@ from django.http import Http404
 from django.utils import timezone
 
 
-# class CreateUserView(generics.CreateAPIView):
-#     """Create a new user in the system"""
-#     serializer_class = UserSerializer
-
-class CreateUserView(APIView):
-    def post(self, request):
-        if request.method == 'POST':
-            serializer = UserSerializer(data=request.data)
-            data = {}
-            if serializer.is_valid():
-                user = serializer.save()
-                data['response'] = "successfully registered a new user"
-                data['email'] = user.email
-                data['username'] = user.name
-                token = Token.objects.get(user=user).key
-                data['token'] = token
-            else:
-                data = serializer.errors
-            return Response(data)
-
-
+class CreateUserView(generics.CreateAPIView):
+    """Create a new user in the system"""
+    serializer_class = UserSerializer
     
 
-class CreateTokenView(ObtainAuthToken):
-    """Create a new auth token for user when logging in"""
+class LoginView(ObtainAuthToken):
+    """Create a new auth token for user"""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+def login_send_otp_email(email,subject):
+    
+    OTP.objects.filter(otp_email__iexact = email).delete()
+
+    otp = random.randint(1000,9999)
+
+    msg = EmailMessage(subject, '<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.1em">Hi,</p><p>Thank you for creating an account on Swaad. Use the following OTP to complete your Sign Up procedures. OTP is valid for 2 minutes</p><h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:0.9em;">Regards,<br/>Suyash Singh<br>CEO</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300"><p>Swaad</p><p>Chinchpokli Bunder, Khau Galli</p><p>Jaunpur</p></div></div></div>' , 'suyashsingh.stem@gmail.com', (email,))
+    msg.content_subtype = "html"
+    msg.send()
+
+    OTP.objects.create(otp=otp, otp_email = email)
 
 def send_otp_email(email,body,subject):
     
@@ -105,7 +99,7 @@ class PasswordResetOTPConfirm(APIView):
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
 
-class loginOTP(APIView):
+class LoginOTP(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         
@@ -117,21 +111,20 @@ class loginOTP(APIView):
             except:
                 return Response({
                     'validation':False,
-                    'detail':'There is no such email registered'
+                    'status':'There is no such email registered'
                 })
-            send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
-            return Response({"detail":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+            login_send_otp_email(request_email,subject="[OTP] New Login for Swaad App") 
+            return Response({"status":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
             
             
-class loginOTPverification(APIView):
+class LoginOTPverification(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
 
         request_otp   = request.data.get("otp",)
         request_email = request.data.get("email")
 
-    
-        if request_email is not None:
+        if request_email:
             try:
 
                 request_model = OTP.objects.get(otp_email__iexact = request_email)
@@ -141,29 +134,24 @@ class loginOTPverification(APIView):
             
             otp = request_model.otp
             email = request_model.otp_email
+
+            request_time = OTP.objects.get(otp_email__iexact = request_email).time_created + datetime.timedelta(seconds = 120)
+            current_time = timezone.now()
+
+            if request_time < current_time:
+                return Response({"status" : "Sorry, entered OTP has expired.",
+                                 "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
+            
             if str(request_otp) == str(otp) and request_email == email:
-                # request_model.validated = True
                 user.object.is_verified = True
                 request_model.save()
                 return Response({
                     'verified':True,
-                    'detail':'OTP verified, proceed to registration.'
+                    'status':'OTP verified, proceed to registration.'
                 })
             else:
                 return Response({
                     'verified':False,
-                    'detail':'OTP incorrect.'
+                    'status':'OTP incorrect.'
 
                 })
-            # else:
-            #     return Response({
-            #             'validation':False,
-            #             'detail':'OTP not sent.'
-
-            #         })
-        # else:
-        #     return Response({
-        #                 'validity':False,
-        #                 'detail':'Please provide a valid email id.'
-
-        #             })
