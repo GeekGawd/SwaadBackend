@@ -15,7 +15,12 @@ from django.utils import timezone
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
-    
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'status' : 'User registered successfully'})
 
 class LoginView(ObtainAuthToken):
     """Create a new auth token for user"""

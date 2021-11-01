@@ -1,14 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 from django.utils import timezone
+from rest_framework.response import Response
 
 
 
 class UserManager(BaseUserManager):
 
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('Users must have an email address')
+    def create_user(self, email, name, password=None, **extra_fields):
+        if email is None:
+            return Response({'status':'Users must have an email address'})
+        if name is None:
+            return Response({'status':'Users must have a name'})
+        if password is None:
+            return Response({'status':'Users must have a password'})
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save()
