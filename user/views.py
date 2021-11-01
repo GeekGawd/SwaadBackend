@@ -78,3 +78,67 @@ class PasswordResetOTPConfirm(APIView):
             "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
+
+
+class loginOTP(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        
+        request_email = request.data.get("email",)
+       
+        if request_email:
+            try:
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                return Response({
+                    'validation':False,
+                    'detail':'There is no such email registered'
+                })
+            send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
+            return Response({"detail":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+            
+            
+class loginOTPverification(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+
+        request_otp   = request.data.get("otp",)
+        request_email = request.data.get("email")
+
+    
+        if request_email is not None:
+            try:
+
+                request_model = OTP.objects.get(otp_email__iexact = request_email)
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                raise Http404
+            
+            otp = request_model.otp
+            email = request_model.otp_email
+            if str(request_otp) == str(otp) and request_email == email:
+                # request_model.validated = True
+                user.object.is_verified = True
+                request_model.save()
+                return Response({
+                    'verified':True,
+                    'detail':'OTP verified, proceed to registration.'
+                })
+            else:
+                return Response({
+                    'verified':False,
+                    'detail':'OTP incorrect.'
+
+                })
+            # else:
+            #     return Response({
+            #             'validation':False,
+            #             'detail':'OTP not sent.'
+
+            #         })
+        # else:
+        #     return Response({
+        #                 'validity':False,
+        #                 'detail':'Please provide a valid email id.'
+
+        #             })
