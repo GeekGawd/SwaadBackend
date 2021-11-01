@@ -1,5 +1,7 @@
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
@@ -12,9 +14,28 @@ from django.http import Http404
 from django.utils import timezone
 
 
-class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system"""
-    serializer_class = UserSerializer
+# class CreateUserView(generics.CreateAPIView):
+#     """Create a new user in the system"""
+#     serializer_class = UserSerializer
+
+class CreateUserView(APIView):
+    def post(self, request):
+        if request.method == 'POST':
+            serializer = UserSerializer(data=request.data)
+            data = {}
+            if serializer.is_valid():
+                user = serializer.save()
+                data['response'] = "successfully registered a new user"
+                data['email'] = user.email
+                data['username'] = user.name
+                token = Token.objects.get(user=user).key
+                data['token'] = token
+            else:
+                data = serializer.errors
+            return Response(data)
+
+
+    
 
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user when logging in"""
@@ -82,3 +103,67 @@ class PasswordResetOTPConfirm(APIView):
 
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
+
+
+class loginOTP(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        
+        request_email = request.data.get("email",)
+       
+        if request_email:
+            try:
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                return Response({
+                    'validation':False,
+                    'detail':'There is no such email registered'
+                })
+            send_otp_email(request_email, body = "Hi! Thank You for the inconvenience. Here is your OTP for your new login to the Swaad App",subject="[OTP] New Login for Swaad App") 
+            return Response({"detail":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+            
+            
+class loginOTPverification(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+
+        request_otp   = request.data.get("otp",)
+        request_email = request.data.get("email")
+
+    
+        if request_email is not None:
+            try:
+
+                request_model = OTP.objects.get(otp_email__iexact = request_email)
+                user = User.objects.get(email__iexact = request_email)
+            except:
+                raise Http404
+            
+            otp = request_model.otp
+            email = request_model.otp_email
+            if str(request_otp) == str(otp) and request_email == email:
+                # request_model.validated = True
+                user.object.is_verified = True
+                request_model.save()
+                return Response({
+                    'verified':True,
+                    'detail':'OTP verified, proceed to registration.'
+                })
+            else:
+                return Response({
+                    'verified':False,
+                    'detail':'OTP incorrect.'
+
+                })
+            # else:
+            #     return Response({
+            #             'validation':False,
+            #             'detail':'OTP not sent.'
+
+            #         })
+        # else:
+        #     return Response({
+        #                 'validity':False,
+        #                 'detail':'Please provide a valid email id.'
+
+        #             })
