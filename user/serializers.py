@@ -26,14 +26,16 @@ class LoginUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ('email', 'password')
-        extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}  
  
 
 class AuthTokenSerializer(serializers.Serializer):
     """Serializer for the user authentication object"""
-    email = serializers.CharField()
+    email = serializers.CharField(required=True, error_messages={"required": "Email field may not be blank."})
     password = serializers.CharField(
         style={'input_type': 'password'},
+        required=True, 
+        error_messages={"required": "Email field may not be blank."},
         trim_whitespace=False
     )
 

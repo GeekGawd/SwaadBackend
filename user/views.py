@@ -90,12 +90,10 @@ class PasswordResetOTPConfirm(APIView):
             current_time = timezone.now()
 
             if request_time < current_time:
-                return Response({"status" : "Sorry, entered OTP has expired.",
-                                 "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_400_BAD_REQUEST)
 
             if str(otpfields.otp) != str(request_otp):
-                 return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP.",
-                                 "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
+                 return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP."},status = status.HTTP_400_BAD_REQUEST)
 
             OTP.objects.filter(otp_email__iexact = request_email).delete()
             return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
