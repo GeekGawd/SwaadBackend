@@ -86,7 +86,7 @@ class PasswordResetOTPConfirm(APIView):
             except:
                 raise Http404
 
-            request_time = otpfields.time_created + datetime.timedelta(seconds = 120)
+            request_time = int(otpfields.time_created) + datetime.timedelta(seconds = 120)
             current_time = timezone.now()
 
             if request_time < current_time:
@@ -138,8 +138,8 @@ class LoginOTPverification(APIView):
             otp = request_model.otp
             email = request_model.otp_email
 
-            request_time = OTP.objects.get(otp_email__iexact = request_email).time_created + datetime.timedelta(seconds = 120)
-            current_time = timezone.now()
+            request_time = int(OTP.objects.get(otp_email__iexact = request_email).time_created) + datetime.timedelta(seconds = 120)
+            current_time = timezone.now() 
 
             if request_time < current_time:
                 return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
