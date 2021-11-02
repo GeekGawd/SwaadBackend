@@ -17,19 +17,12 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-
-        data = request.data
-        if data['email'] is None:
-            return Response({'status':'Users must have an email address'})
-        if data['name'] is None:
-            return Response({'status':'Users must have a name'})
-        if data['password'] is None:
-            return Response({'status':'Users must have a password'})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer = self.serializer_class(data=request.data) 
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status' : 'User registered successfully'})
+        return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
         
-        return Response({'status' : 'User registered successfully'})
 
 class LoginView(ObtainAuthToken):
     """Create a new auth token for user"""
@@ -151,8 +144,7 @@ class LoginOTPverification(APIView):
             current_time = timezone.now()
 
             if request_time < current_time:
-                return Response({"status" : "Sorry, entered OTP has expired.",
-                                 "time": str(request_time)},status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
             
             if str(request_otp) == str(otp) and request_email == email:
                 user.object.is_verified = True

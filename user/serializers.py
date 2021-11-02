@@ -10,7 +10,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ('email', 'password', 'name')
-        extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
+        extra_kwargs = {
+            'password': {'write_only': True, 'min_length': 5,'required': True, 'error_messages': {"required": "Change this"}},
+            'email': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
+            'name': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
+            }
 
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
