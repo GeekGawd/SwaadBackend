@@ -18,8 +18,17 @@ class CreateUserView(generics.CreateAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
+
+        data = request.data
+        if data['email'] is None:
+            return Response({'status':'Users must have an email address'})
+        if data['name'] is None:
+            return Response({'status':'Users must have a name'})
+        if data['password'] is None:
+            return Response({'status':'Users must have a password'})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
         return Response({'status' : 'User registered successfully'})
 
 class LoginView(ObtainAuthToken):
