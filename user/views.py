@@ -39,23 +39,23 @@ def login_send_otp_email(email,subject):
     msg.content_subtype = "html"
     msg.send()
 
-    OTP.objects.create(otp=otp, otp_email = email)
+    time_created = int(time.time())
 
-def send_otp_email(email,body,subject):
+    OTP.objects.create(otp=otp, otp_email = email, time_created = time_created)
+
+def send_otp_email(email,subject):
     
     OTP.objects.filter(otp_email__iexact = email).delete()
 
     otp = random.randint(1000,9999)
 
-    send_mail(
-    subject,
-    f"{body} {otp}.\n This OTP will be valid for 2 minute." 
-    ,'suyashsingh.stem@gmail.com',
-    [email],
-     fail_silently = False
-     ) 
+    msg = EmailMessage(subject, '<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.1em">Hi,</p><p>Hi! Looks like you forgot your password. No worries we are here to help. Use the following the OTP to recover your account. OTP is valid for 2 minutes</p><h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:0.9em;">Regards,<br/>Suyash Singh<br>CEO</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300"><p>Swaad</p><p>Chinchpokli Bunder, Khau Galli</p><p>Jaunpur</p></div></div></div>' , 'suyashsingh.stem@gmail.com', (email,))
+    msg.content_subtype = "html"
+    msg.send()
 
-    OTP.objects.create(otp=otp, otp_email = email)
+    time_created = int(time.time())
+
+    OTP.objects.create(otp=otp, otp_email = email, time_created = time_created)
 
 class PasswordReset(APIView):
     permission_classes = [AllowAny]
@@ -67,7 +67,7 @@ class PasswordReset(APIView):
         except: 
             return Response({"status" : "No such account exists"},status = status.HTTP_400_BAD_REQUEST)
 
-        send_otp_email(request_email, body = "Hi! Sorry for the inconvenience. Here is your OTP for the Swaad App",subject="[OTP] Password Change for Swaad App") 
+        send_otp_email(email = request_email,subject="[OTP] Password Change for Swaad App") 
 
         return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)
 
@@ -86,10 +86,10 @@ class PasswordResetOTPConfirm(APIView):
             except:
                 raise Http404
 
-            request_time = otpfields.time_created + datetime.timedelta(seconds = 120)
-            current_time = timezone.now()
+            request_time = otpfields.time_created
+            current_time = int(time.time())
 
-            if request_time < current_time:
+            if current_time - request_time > 120:
                 return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_400_BAD_REQUEST)
 
             if str(otpfields.otp) != str(request_otp):
@@ -138,10 +138,10 @@ class LoginOTPverification(APIView):
             otp = request_model.otp
             email = request_model.otp_email
 
-            request_time = OTP.objects.get(otp_email__iexact = request_email).time_created + datetime.timedelta(seconds = 120)
-            current_time = timezone.now() 
+            request_time = OTP.objects.get(otp_email__iexact = request_email).time_created
+            current_time = int(time.time())
 
-            if request_time < current_time:
+            if current_time - request_time > 120:
                 return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
             
             if str(request_otp) == str(otp) and request_email == email:

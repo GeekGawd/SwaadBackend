@@ -36,6 +36,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 class OTP(models.Model):
     otp = models.IntegerField()
     otp_email = models.EmailField()
-    time_created = models.DateTimeField(auto_now_add=True)
+    time_created = models.IntegerField()
     def __str__(self):
         return f"{self.otp_email} : {self.otp}"
