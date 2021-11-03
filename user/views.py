@@ -1,5 +1,6 @@
 from rest_framework import generics, status, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
@@ -96,8 +97,8 @@ class PasswordResetOTPConfirm(APIView):
                  return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP."},status = status.HTTP_400_BAD_REQUEST)
 
             OTP.objects.filter(otp_email__iexact = request_email).delete()
-            return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
-
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({"status": "OTP verified You can now change your password", "token": token.key}, status = status.HTTP_200_OK)
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
