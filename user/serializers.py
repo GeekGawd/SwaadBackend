@@ -37,7 +37,7 @@ class AuthTokenSerializer(serializers.Serializer):
     password = serializers.CharField(
         style={'input_type': 'password'},
         required=True, 
-        error_messages={"required": "Email field may not be blank."},
+        error_messages={"required": "password field may not be blank."},
         trim_whitespace=False
     )
 

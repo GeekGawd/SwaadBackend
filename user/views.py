@@ -1,5 +1,6 @@
 from rest_framework import generics, status, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
@@ -26,8 +27,29 @@ class CreateUserView(generics.CreateAPIView):
 
 class LoginView(ObtainAuthToken):
     """Create a new auth token for user"""
-    serializer_class = AuthTokenSerializer
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    # serializer_class = AuthTokenSerializer
+    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    def post(self, request, *args, **kwargs):
+        request_email = request.data.get('email',)
+        try:
+            user1 = User.objects.get(email__iexact = request_email)
+        except: 
+            return Response({
+                'detail':'User not registered'
+            })
+        if user1.is_active is True:
+            serializer = AuthTokenSerializer(data=request.data,  context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            token = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key
+                })
+        else:
+            return Response({
+                'detail':'User not validated, please goto login/otp'
+            })
+
 
 def login_send_otp_email(email,subject):
     
@@ -35,7 +57,7 @@ def login_send_otp_email(email,subject):
 
     otp = random.randint(1000,9999)
 
-    msg = EmailMessage(subject, '<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.1em">Hi,</p><p>Thank you for creating an account on Swaad. Use the following OTP to complete your Sign Up procedures. OTP is valid for 2 minutes</p><h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:0.9em;">Regards,<br/>Suyash Singh<br>CEO</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300"><p>Swaad</p><p>Chinchpokli Bunder, Khau Galli</p><p>Jaunpur</p></div></div></div>' , 'swaad.info.contact@gmail.com', (email,))
+    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.1em">Hi,</p><p>Thank you for creating an account on Swaad. Use the following OTP to complete your Sign Up procedures. OTP is valid for 2 minutes</p><h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:0.9em;">Regards,<br/>Suyash Singh<br>CEO</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300"><p>Swaad</p><p>Chinchpokli Bunder, Khau Galli</p><p>Jaunpur</p></div></div></div>' , 'swaad.info.contact@gmail.com', (email,))
     msg.content_subtype = "html"
     msg.send()
 
@@ -153,6 +175,7 @@ class LoginOTPverification(APIView):
                 request_model.save()
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 user.is_active = True
+                user.save()
                 return Response({
                     'verified':True,
                     'status':'OTP verified, proceed to registration.'
