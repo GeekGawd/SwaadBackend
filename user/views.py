@@ -105,19 +105,24 @@ class PasswordResetOTPConfirm(APIView):
 class LoginOTP(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        
         request_email = request.data.get("email",)
-       
-        if request_email:
-            try:
-                user = User.objects.get(email__iexact = request_email)
-            except:
-                return Response({
-                    'validation':False,
-                    'status':'There is no such email registered'
-                })
-            login_send_otp_email(request_email,subject="[OTP] New Login for Swaad App") 
-            return Response({"status":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+        user = User.objects.get(email__iexact = request_email)
+        if user.is_active is False:
+            if request_email:
+                try:
+                    user = User.objects.get(email__iexact = request_email)
+                except:
+                    return Response({
+                        'validation':False,
+                        'status':'There is no such email registered'
+                    })
+                login_send_otp_email(request_email,subject="[OTP] New Login for Swaad App") 
+                return Response({"status":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
+            else:
+                return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"status":"user registered already"},status = status.HTTP_400_BAD_REQUEST)
+                
             
             
 class LoginOTPverification(APIView):
@@ -145,8 +150,9 @@ class LoginOTPverification(APIView):
                 return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
             
             if str(request_otp) == str(otp) and request_email == email:
-                user.object.is_verified = True
                 request_model.save()
+                OTP.objects.filter(otp_email__iexact = request_email).delete()
+                user.is_active = True
                 return Response({
                     'verified':True,
                     'status':'OTP verified, proceed to registration.'
