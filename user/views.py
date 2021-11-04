@@ -36,7 +36,7 @@ def login_send_otp_email(email,subject):
 
     otp = random.randint(1000,9999)
 
-    msg = EmailMessage(subject, '<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.1em">Hi,</p><p>Thank you for creating an account on Swaad. Use the following OTP to complete your Sign Up procedures. OTP is valid for 2 minutes</p><h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:0.9em;">Regards,<br/>Suyash Singh<br>CEO</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300"><p>Swaad</p><p>Chinchpokli Bunder, Khau Galli</p><p>Jaunpur</p></div></div></div>' , 'swaad.info.contact@gmail.com', (email,))
+    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:2em;color: #FFD243;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.2em">Greetings,</p><p style="font-size:1.2em"> Thank you for creating an account on Swaad. You can count on us for quality, service, and selection. Now, we would not like to hold you up, so use the following OTP to complete your Sign Up procedures and order away.<br><b style="margin: 0 336px;">Note: OTP is only valid for 5 minutes.</b></p><h2 style="font-size: 1.9em;background: #FFD243;margin: 0 auto;width: max-content;padding: 0 15px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:1.2em;">Regards,<br/>Team Swaad</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:1.2em;line-height:1;font-weight:500"><p>Swaad</p><p>Boys Hostel, Near Girl Hostel AKGEC</p><p>Ghaziabad</p></div></div></div>', 'swaad.info.contact@gmail.com', (email,))
     msg.content_subtype = "html"
     msg.send()
 
@@ -50,7 +50,7 @@ def send_otp_email(email,subject):
 
     otp = random.randint(1000,9999)
 
-    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.1em">Hi,</p><p>Hi! Looks like you forgot your password. No worries we are here to help. Use the following the OTP to recover your account. OTP is valid for 2 minutes</p><h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:0.9em;">Regards,<br/>Suyash Singh<br>CEO</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300"><p>Swaad</p><p>Chinchpokli Bunder, Khau Galli</p><p>Jaunpur</p></div></div></div>' , 'swaad.info.contact@gmail.com', (email,))
+    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:2em;color: #FFD243;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.2em">Greetings,</p><p style="font-size:1.2em"> Looks like you forgot your password. No worries we are here to help you recover your account. Use the following OTP to recover your account and start ordering the delicacies again in no time. <br><b style="margin: 0 336px;"> Note: OTP is only valid for 5 minutes.</b></p><h2 style="font-size: 1.9em;background: #FFD243;margin: 0 auto;width: max-content;padding: 0 15px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:1.2em;">Regards,<br/>Team Swaad</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:1.2em;line-height:1;font-weight:500"><p>Swaad</p><p>Boys Hostel, Near Girl Hostel AKGEC</p><p>Ghaziabad</p></div></div></div>' , 'swaad.info.contact@gmail.com', (email,))
     msg.content_subtype = "html"
     msg.send()
 
@@ -90,7 +90,7 @@ class PasswordResetOTPConfirm(APIView):
             request_time = otpfields.time_created
             current_time = int(time.time())
 
-            if current_time - request_time > 120:
+            if current_time - request_time > 300:
                 return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_400_BAD_REQUEST)
 
             if str(otpfields.otp) != str(request_otp):
@@ -147,7 +147,7 @@ class LoginOTPverification(APIView):
             request_time = OTP.objects.get(otp_email__iexact = request_email).time_created
             current_time = int(time.time())
 
-            if current_time - request_time > 120:
+            if current_time - request_time > 300:
                 return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
             
             if str(request_otp) == str(otp) and request_email == email:
