@@ -27,8 +27,29 @@ class CreateUserView(generics.CreateAPIView):
 
 class LoginView(ObtainAuthToken):
     """Create a new auth token for user"""
-    serializer_class = AuthTokenSerializer
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    # serializer_class = AuthTokenSerializer
+    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    def post(self, request, *args, **kwargs):
+        request_email = request.data.get('email',)
+        try:
+            user1 = User.objects.get(email__iexact = request_email)
+        except: 
+            return Response({
+                'detail':'User not registered'
+            })
+        if user1.is_active is True:
+            serializer = AuthTokenSerializer(data=request.data,  context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            token = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key
+                })
+        else:
+            return Response({
+                'detail':'User not validated, please goto login/otp'
+            })
+
 
 def login_send_otp_email(email,subject):
     
@@ -154,6 +175,7 @@ class LoginOTPverification(APIView):
                 request_model.save()
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 user.is_active = True
+                user.save()
                 return Response({
                     'verified':True,
                     'status':'OTP verified, proceed to registration.'
