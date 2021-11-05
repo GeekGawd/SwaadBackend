@@ -16,6 +16,14 @@ class UserSerializer(serializers.ModelSerializer):
             'name': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
             }
 
+    def validate(self, attrs):
+        name = attrs.get('name',)
+        name = name.strip().title()
+
+        attrs['name'] = name
+        return attrs
+
+        
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
         return get_user_model().objects.create_user(**validated_data)
