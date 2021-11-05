@@ -18,11 +18,15 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data) 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'status' : 'User registered successfully'})
-        return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
+        serializer = self.serializer_class(data=request.data)
+        request_email = request.data.get('email',)
+        user = User.objects.get(email__iexact = request_email)
+        if user is None:
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'status' : 'User registered successfully'})
+            return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
+        return Response({'status' : 'Entered email is already registered.'})
         
 
 class LoginView(ObtainAuthToken):
