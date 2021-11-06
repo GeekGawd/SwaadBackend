@@ -47,8 +47,10 @@ class LoginView(ObtainAuthToken):
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
+            name = user1.name
             return Response({
-                'token': token.key
+                'token': token.key,
+                'name': name
                 })
         else:
             return Response({
