@@ -34,18 +34,6 @@ class RestaurantSerializer(ModelSerializer):
             'phone',
             'address'
         ]
-    def create(self, validated_data):
-        # restaurent_owner = validated_data.pop('user')
-        # print(restaurent_owner)
-        # try:
-        #     user = User.objects.filer(email=restaurent_owner)
-        # except:
-        #     return 'user not found'
-        # print('user found')
-        # restaurent.user=resturent_owner
-        restaurant = Restaurant(**validated_data)
-        restaurant.save()
-        return restaurant
 
 class DishSerializer(ModelSerializer):
     class Meta:

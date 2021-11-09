@@ -23,7 +23,7 @@ from seller import views
 #     'get':'retrieve',
 #     'put': 'update',
 #     'delete': 'destroy',
-# })
+# 
 
 
 
@@ -33,5 +33,8 @@ urlpatterns = [
     # path('', include(router.urls)),
     path('register/', views.CreateSellerView.as_view(), name='register'),
     path('login/', views.LoginView.as_view(), name='login'),
-    path('customer/restaurants/', views.customer_get_restaurants),
+    path('customer/restaurants/', views.CustomerGetRestaurants.as_view()),
+    path('restaurant/addmeal', views.RestaurantAddDish.as_view()),
+    path('login/otp', views.LoginOTP.as_view(), name = 'loginotp'),
+    path('login/verify', views.LoginOTPverification.as_view(), name = 'loginotpverification'),
 ]
