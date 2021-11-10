@@ -206,7 +206,7 @@ class CustomerRating(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get(self, request, pk = None):
+    def get(self, request):
         ratings = RatingSerializer(
             Rating.objects.all().order_by('id'),
             many = True,
@@ -215,14 +215,17 @@ class CustomerRating(APIView):
 
         return Response({"ratings": ratings}, status=status.HTTP_200_OK)
 
-    def post(self, request, pk=None):
+    def post(self, request, dish_id=None):
+
+        
         if 'stars' in request.data:
             stars = request.data['stars']
             user_id = Token.objects.get(key=request.auth.key).user_id
             # return Response({'status': user_id}, status=status.HTTP_200_OK)
             user = User.objects.get(id=user_id)
-            dish = Dish.objects.get(id=pk)
-            
+            dish = Dish.objects.get(id=dish_id)
+            print("dish")
+            restaurant = dish.restaurant
             try: 
                 rating = Rating.objects.get(user=user, dish=dish.id)
                 rating.stars = stars
@@ -232,7 +235,7 @@ class CustomerRating(APIView):
                 return Response(response, status=status.HTTP_200_OK)
 
             except: 
-                rating = Rating.objects.create(user=user, dish=dish, stars=stars)
+                rating = Rating.objects.create(user=user, dish=dish, stars=stars, restaurant=restaurant)
                 serializer = RatingSerializer(rating, many=False)
                 response = {'status': 'Rating created', 'result': serializer.data}
                 return Response(response, status=status.HTTP_200_OK)

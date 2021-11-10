@@ -32,7 +32,9 @@ class RestaurantSerializer(ModelSerializer):
             'user',
             'rest_name',
             'phone',
-            'address'
+            'address',
+            'no_of_ratings',
+            'avg_rating',
         ]
 
 class DishSerializer(ModelSerializer):
