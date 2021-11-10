@@ -207,7 +207,7 @@ class CustomerGetDish(APIView):
             context = {"request": request}
         ).data
 
-        return Response({dishes})
+        return Response(dishes)
 
 class CustomerRating(APIView):
 
