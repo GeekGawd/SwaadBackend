@@ -201,13 +201,13 @@ class CustomerGetDish(APIView):
     serializer_class = DishSerializer
     def get(self, request, restaurant_id):
 
-        meals = self.serializer_class(
+        dishes = self.serializer_class(
             Dish.objects.filter(restaurant_id = restaurant_id).order_by("id"),
             many = True,
             context = {"request": request}
         ).data
 
-        return Response({"meals": meals})
+        return Response({dishes})
 
 class CustomerRating(APIView):
 
