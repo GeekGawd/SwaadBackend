@@ -13,15 +13,8 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 5,'required': True, 'error_messages': {"required": "Change this"}},
             'email': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
-            'name': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
+            'name': {'error_messages': {"required": "Name field may not be blank."}},
             }
-
-    def validate(self, attrs):
-        name = attrs.get('name',)
-        name = name.strip().title()
-
-        attrs['name'] = name
-        return attrs
 
         
     def create(self, validated_data):

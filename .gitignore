@@ -1,2 +1,5 @@
 .env
 mydatabase
+seller/factories.py
+seller/management/
+staticfiles/

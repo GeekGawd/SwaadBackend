@@ -21,6 +21,21 @@ from rest_framework.views import APIView
 #     serializer_class = CategorySerializer
 #     queryset = Category.objects.all()
 
+def login_send_otp_email(email,subject):
+    
+    OTP.objects.filter(otp_email__iexact = email).delete()
+
+    otp = random.randint(1000,9999)
+
+    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:2em;color: #FFD243;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.2em">Greetings,</p><p style="font-size:1.2em"> Thank you for creating an account on Swaad. You can count on us for quality, service, and selection. Now, we would not like to hold you up, so use the following OTP to complete your Sign Up procedures.<br><b style="text-align: center;display: block;">Note: OTP is only valid for 5 minutes.</b></p><h2 style="font-size: 1.9em;background: #FFD243;margin: 0 auto;width: max-content;padding: 0 15px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:1.2em;">Regards,<br/>Team Swaad</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:1.2em;line-height:1;font-weight:500"><p>Swaad</p><p>Boys Hostel, Near Girl Hostel AKGEC</p><p>Ghaziabad</p></div></div></div>', 'swaad.info.contact@gmail.com', (email,))
+    msg.content_subtype = "html"
+    msg.send()
+
+    time_created = int(time.time())
+
+    OTP.objects.create(otp=otp, otp_email = email, time_created = time_created)
+
+
 class RestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = RestaurantSerializer
     queryset = Restaurant.objects.all()
@@ -75,7 +90,7 @@ class LoginView(ObtainAuthToken):
             })
 
 class CustomerGetRestaurants(APIView):
-
+    
     def get(self, request, *args, **kwargs):
         restaurants = RestaurantSerializer(
             Restaurant.objects.all().order_by("?"),
@@ -172,16 +187,58 @@ class LoginOTPverification(APIView):
 
                 })
 
-def login_send_otp_email(email,subject):
-    
-    OTP.objects.filter(otp_email__iexact = email).delete()
+class CustomerGetDish(APIView):
 
-    otp = random.randint(1000,9999)
+    serializer_class = DishSerializer
+    def get(self, request, restaurant_id):
 
-    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:2em;color: #FFD243;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.2em">Greetings,</p><p style="font-size:1.2em"> Thank you for creating an account on Swaad. You can count on us for quality, service, and selection. Now, we would not like to hold you up, so use the following OTP to complete your Sign Up procedures.<br><b style="text-align: center;display: block;">Note: OTP is only valid for 5 minutes.</b></p><h2 style="font-size: 1.9em;background: #FFD243;margin: 0 auto;width: max-content;padding: 0 15px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:1.2em;">Regards,<br/>Team Swaad</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:1.2em;line-height:1;font-weight:500"><p>Swaad</p><p>Boys Hostel, Near Girl Hostel AKGEC</p><p>Ghaziabad</p></div></div></div>', 'swaad.info.contact@gmail.com', (email,))
-    msg.content_subtype = "html"
-    msg.send()
+        meals = self.serializer_class(
+            Dish.objects.filter(restaurant_id = restaurant_id).order_by("id"),
+            many = True,
+            context = {"request": request}
+        ).data
 
-    time_created = int(time.time())
+        return Response({"meals": meals})
 
-    OTP.objects.create(otp=otp, otp_email = email, time_created = time_created)
+class CustomerRating(APIView):
+
+    serializer_class = RatingSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk = None):
+        ratings = RatingSerializer(
+            Rating.objects.all().order_by('id'),
+            many = True,
+            context = {"request": request}
+        ).data
+
+        return Response({"ratings": ratings}, status=status.HTTP_200_OK)
+
+    def post(self, request, pk=None):
+        if 'stars' in request.data:
+            stars = request.data['stars']
+            user_id = Token.objects.get(key=request.auth.key).user_id
+            # return Response({'status': user_id}, status=status.HTTP_200_OK)
+            user = User.objects.get(id=user_id)
+            dish = Dish.objects.get(id=pk)
+            
+            try: 
+                rating = Rating.objects.get(user=user, dish=dish.id)
+                rating.stars = stars
+                rating.save()
+                serializer = RatingSerializer(rating, many=False)
+                response = {'status': 'Rating updated', 'result': serializer.data}
+                return Response(response, status=status.HTTP_200_OK)
+
+            except: 
+                rating = Rating.objects.create(user=user, dish=dish, stars=stars)
+                serializer = RatingSerializer(rating, many=False)
+                response = {'status': 'Rating created', 'result': serializer.data}
+                return Response(response, status=status.HTTP_200_OK)
+                 
+        else:
+            response = {'message': 'You need to provide a rating'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
