@@ -42,26 +42,35 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 
 class CreateSellerView(APIView):
     """Create a new user in the system"""
+    serializer_class = UserSerializer
 
     def post(self, request):
         data = request.data
-        serializer1 = UserSerializer(data = data)
-        if serializer1.is_valid():
-            user = serializer1.save()
-        
-        id1 = user.id
-        # try:
-        #     user = User.objects.filter(id=id1)[0]
-        # except:
-        #     raise Http404
+        request_email = data.get('email', )
 
-        data['user'] = id1
-        serializer2 = RestaurantSerializer(data = data)
-        # if Restaurant.objects.all().filter(user=id1) is None:
-        if serializer2.is_valid():
-            serializer2.save()
-            return Response(serializer2.data, status=status.HTTP_201_CREATED)
-        return Response({'details':'User already have a restaurant.'},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            _ = User.objects.get(email__iexact = request_email)
+        except:
+            serializer1 = self.serializer_class(data = data)
+            if serializer1.is_valid():
+                user = serializer1.save()
+            
+            id1 = user.id
+            # try:
+            #     user = User.objects.filter(id=id1)[0]
+            # except:
+            #     raise Http404
+
+            data['user'] = id1
+            serializer2 = RestaurantSerializer(data = data)
+            # if Restaurant.objects.all().filter(user=id1) is None:
+            if serializer2.is_valid():
+                serializer2.save()
+                return Response(serializer2.data, status=status.HTTP_201_CREATED)
+            return Response({'status':'User already have a restaurant.'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status' : 'Entered email is already registered.'})
+
+        
 
 class LoginView(ObtainAuthToken):
     """Create a new auth token for user"""
@@ -98,7 +107,7 @@ class CustomerGetRestaurants(APIView):
             context = {"request": request}
         ).data
 
-        return Response({"restaurants": restaurants})
+        return Response(restaurants, status=status.HTTP_200_OK)
 
 
 class RestaurantAddDish(APIView):
@@ -121,7 +130,7 @@ class RestaurantAddDish(APIView):
             user    = User.objects.get(id=id1)
         except:
             raise Response({"status":"User Not Found"})
-        serializer  = self.serializer_class(data=request.data,context={'request': request})
+        serializer = self.serializer_class(data=request.data,context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
