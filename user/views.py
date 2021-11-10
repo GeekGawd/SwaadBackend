@@ -18,6 +18,8 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
     def post(self, request):
+        name = request.data.get('name',)
+        request.data['name'] = name.strip().title()
         serializer = self.serializer_class(data=request.data)
         request_email = request.data.get('email',)
         try:

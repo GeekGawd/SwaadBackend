@@ -1,6 +1,16 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import *
 # Register your models here.
 
-admin.site.register(Dish)
-admin.site.register(Restaurant)
+@admin.register(Dish)
+class RestaurentAdmin(admin.ModelAdmin):
+    ordering = ['id']
+    list_display = ('id', 'title', 'restaurant')
+
+admin.site.register(Rating)
+
+@admin.register(Restaurant)
+class RestaurentAdmin(admin.ModelAdmin):
+    ordering = ['id']
+    list_display = ('id', 'rest_name', 'phone', 'address')
