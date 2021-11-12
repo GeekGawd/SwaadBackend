@@ -44,7 +44,10 @@ INSTALLED_APPS = [
     'user',
     'seller',
     'order',
+<<<<<<< HEAD:app/settings.py
     'payments',
+=======
+>>>>>>> f917b26c3852b4ca8eae54401600f2780927b07e:swaad/swaad/settings.py
 ]
 
 MIDDLEWARE = [
@@ -131,9 +134,15 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 django_heroku.settings(locals())
+<<<<<<< HEAD:app/settings.py
 
 AUTH_USER_MODEL = 'core.User'
 
+=======
+
+AUTH_USER_MODEL = 'core.User'
+
+>>>>>>> f917b26c3852b4ca8eae54401600f2780927b07e:swaad/swaad/settings.py
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_HOST_PASSWORD = 'vkwoxmpekncpmqlq'

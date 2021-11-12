@@ -30,7 +30,10 @@ class RestaurantSerializer(ModelSerializer):
         fields = [
             'id',
             'user',
+<<<<<<< HEAD
             'image',
+=======
+>>>>>>> f917b26c3852b4ca8eae54401600f2780927b07e
             'rest_name',
             'phone',
             'address',
@@ -43,7 +46,11 @@ class DishSerializer(ModelSerializer):
         model = Dish
         fields = [
             'id',
+<<<<<<< HEAD
             'image',
+=======
+            'photo',
+>>>>>>> f917b26c3852b4ca8eae54401600f2780927b07e
             'title',
             'price',
             'category',

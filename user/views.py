@@ -13,10 +13,10 @@ from django.http import Http404
 from django.utils import timezone
 
 
-class CreateUserView(generics.CreateAPIView):
+class CreateUserView(APIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
-
+    permission_classes = [AllowAny]
     def post(self, request):
         name = request.data.get('name',)
         request.data['name'] = name.strip().title()
@@ -33,10 +33,11 @@ class CreateUserView(generics.CreateAPIView):
         return Response({'status' : 'Entered email is already registered.'})
         
 
-class LoginView(ObtainAuthToken):
+class LoginView(APIView):
     """Create a new auth token for user"""
     # serializer_class = AuthTokenSerializer
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         request_email = request.data.get('email',)
         try:
