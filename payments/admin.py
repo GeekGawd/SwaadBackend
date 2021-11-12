@@ -11,4 +11,5 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [PriceInlineAdmin]
 
 
-admin.site.register(Dish, ProductAdmin)
+# admin.site.register( ProductAdmin)
+# Dish,
