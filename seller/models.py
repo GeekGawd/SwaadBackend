@@ -48,7 +48,7 @@ class Restaurant(models.Model):
             
             
 class Dish(models.Model):
-    photo = models.ImageField(upload_to = 'img/Dish_images')
+    # photo = models.ImageField(upload_to = 'img/Dish_images')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     price = models.FloatField(validators=[MinValueValidator(0)])
     title = models.CharField(max_length=200)
