@@ -27,7 +27,8 @@ class CreateUserView(APIView):
         except:
             if serializer.is_valid():
                 serializer.save()
-                return Response({'status' : 'User registered successfully'})
+                login_send_otp_email(request_email,subject="[OTP] New Login for Swaad App")
+                return Response({'status' : 'User registered successfully and an OTP has been sent to your email'})
             return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
         return Response({'status' : 'Entered email is already registered.'})
         
@@ -116,19 +117,24 @@ class PasswordResetOTPConfirm(APIView):
 
         if request_email:
             try:
-                otpfields = OTP.objects.get(otp_email__iexact = request_email)
+                otp_instance = OTP.objects.get(otp_email__iexact = request_email)
                 user = User.objects.get(email__iexact = request_email)
             except:
                 raise Http404
 
-            request_time = otpfields.time_created
+            request_time = otp_instance.time_created
+            email = otp_instance.otp_email
             current_time = int(time.time())
 
             if current_time - request_time > 300:
                 return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_400_BAD_REQUEST)
 
-            if str(otpfields.otp) != str(request_otp):
+            if str(otp_instance.otp) != str(request_otp):
                  return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP."},status = status.HTTP_400_BAD_REQUEST)
+            
+            if (request_email != email):
+                return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_400_BAD_REQUEST)
+
 
             OTP.objects.filter(otp_email__iexact = request_email).delete()
             token, created = Token.objects.get_or_create(user=user)
@@ -137,44 +143,45 @@ class PasswordResetOTPConfirm(APIView):
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
 
-class LoginOTP(APIView):
-    permission_classes = [AllowAny]
-    def post(self, request):
-        request_email = request.data.get("email",)
-        user = User.objects.get(email__iexact = request_email)
-        if user.is_active is False:
-            if request_email:
-                try:
-                    user = User.objects.get(email__iexact = request_email)
-                except:
-                    return Response({
-                        'validation':False,
-                        'status':'There is no such email registered'
-                    })
-                login_send_otp_email(request_email,subject="[OTP] New Login for Swaad App") 
-                return Response({"status":"The OTP has been sent to the mail id"},status = status.HTTP_200_OK)
-            else:
-                return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"status":"user registered already"},status = status.HTTP_400_BAD_REQUEST)
+# class SignUpOTP(APIView):
+#     permission_classes = [AllowAny]
+#     def post(self, request):
+#         request_email = request.data.get("email",)
+#         user = User.objects.get(email__iexact = request_email)
+#         if user.is_active is False:
+#             if request_email:
+#                 try:
+#                     user = User.objects.get(email__iexact = request_email)
+#                 except:
+#                     return Response({
+#                         'validation':False,
+#                         'status':'There is no such email registered'
+#                     })
+                
+#                 return
+#             else:
+#                 return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
+#         else:
+#             return Response({"status":"user registered already"},status = status.HTTP_400_BAD_REQUEST)
                 
             
             
-class LoginOTPverification(APIView):
+class SignUpOTPVerification(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
+
         request_otp   = request.data.get("otp",)
         request_email = request.data.get("email")
 
         if request_email:
             try:
-                request_model = OTP.objects.get(otp_email__iexact = request_email)
+                otp_instance = OTP.objects.get(otp_email__iexact = request_email)
                 user = User.objects.get(email__iexact = request_email)
             except:
                 raise Http404
             
-            otp = request_model.otp
-            email = request_model.otp_email
+            otp = otp_instance.otp
+            email = otp_instance.otp_email
 
             request_time = OTP.objects.get(otp_email__iexact = request_email).time_created
             current_time = int(time.time())
@@ -183,7 +190,7 @@ class LoginOTPverification(APIView):
                 return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
             
             if str(request_otp) == str(otp) and request_email == email:
-                request_model.save()
+                otp_instance.save()
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 user.is_active = True
                 user.save()
