@@ -46,9 +46,7 @@ class LoginView(APIView):
         try:
             user1 = User.objects.get(email__iexact = request_email)
         except: 
-            return Response({
-                'status':'User not registered'
-            })
+            return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST})
         if user1.is_active is True:
             serializer = AuthTokenSerializer(data=request.data,  context={'request': request})
             serializer.is_valid(raise_exception=True)
@@ -58,11 +56,11 @@ class LoginView(APIView):
             return Response({
                 'token': token.key,
                 'name': name
-                })
+                }, status = status.HTTP_200_OK)
         else:
             return Response({
                 'status':'User not validated, please goto login/otp'
-            })
+            },status=status.HTTP_401_UNAUTHORIZED)
 
 def login_send_otp_email(email,subject="[OTP] New Login for Swaad App", signup_otp = False):
     
@@ -163,9 +161,9 @@ class SignUpOTP(APIView):
                 except:
                     return Response({'status':'Given email is not registered.'}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
             else:
-                return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status":"Please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"status":"user registered already"},status = status.HTTP_403_FORBIDDEN)
+            return Response({"status":"User verified already"},status = status.HTTP_403_FORBIDDEN)
                 
             
             
@@ -175,7 +173,6 @@ class SignUpOTPVerification(APIView):
 
         request_otp   = request.data.get("otp",)
         request_email = request.data.get("email")
-
         if request_email:
             try:
                 otp_instance = OTP.objects.get(otp_email__iexact = request_email)

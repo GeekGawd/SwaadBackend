@@ -14,7 +14,7 @@ urlpatterns = [
 
     path('signup/verify/', views.SignUpOTPVerification.as_view(), name = 'signupverification'),
 
-    path('signup/resend/<str:email>', views.login_send_otp_email, name = 'loginotpverification'),
+    # path('signup/resend/<str:email>', views.login_send_otp_email, name = 'loginotpverification'),
 
     path('signup/sendotp/', views.SignUpOTP.as_view(), name = 'sendotp'),
     
