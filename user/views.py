@@ -12,7 +12,6 @@ from rest_framework.views import APIView
 from django.http import Http404
 from django.utils import timezone
 
-
 class CreateUserView(APIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
@@ -27,8 +26,8 @@ class CreateUserView(APIView):
         except:
             if serializer.is_valid():
                 serializer.save()
-                login_send_otp_email(request_email,subject="[OTP] New Login for Swaad App")
-                return Response({'status' : 'User registered successfully and an OTP has been sent to your email'})
+                login_send_otp_email(request_email, signup_otp = True)
+                return Response({'status' : 'User registered successfully and an OTP has been sent to your email.'})
             return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
         return Response({'status' : 'Entered email is already registered.'})
         
@@ -62,19 +61,23 @@ class LoginView(APIView):
             })
 
 
-def login_send_otp_email(email,subject):
+def login_send_otp_email(email,subject="[OTP] New Login for Swaad App", signup_otp = False):
     
-    OTP.objects.filter(otp_email__iexact = email).delete()
+        OTP.objects.filter(otp_email__iexact = email).delete()
 
-    otp = random.randint(1000,9999)
+        otp = random.randint(1000,9999)
 
-    msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:2em;color: #FFD243;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.2em">Greetings,</p><p style="font-size:1.2em"> Thank you for creating an account on Swaad. You can count on us for quality, service, and selection. Now, we would not like to hold you up, so use the following OTP to complete your Sign Up procedures and order away.<br><b style="text-align: center;display: block;">Note: OTP is only valid for 5 minutes.</b></p><h2 style="font-size: 1.9em;background: #FFD243;margin: 0 auto;width: max-content;padding: 0 15px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:1.2em;">Regards,<br/>Team Swaad</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:1.2em;line-height:1;font-weight:500"><p>Swaad</p><p>Boys Hostel, Near Girl Hostel AKGEC</p><p>Ghaziabad</p></div></div></div>', 'swaad.info.contact@gmail.com', (email,))
-    msg.content_subtype = "html"
-    msg.send()
+        msg = EmailMessage(subject, f'<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto;width:70%;padding:20px 0"><div style="border-bottom:1px solid #eee"><a href="" style="font-size:2em;color: #FFD243;text-decoration:none;font-weight:600">Swaad</a></div><p style="font-size:1.2em">Greetings,</p><p style="font-size:1.2em"> Thank you for creating an account on Swaad. You can count on us for quality, service, and selection. Now, we would not like to hold you up, so use the following OTP to complete your Sign Up procedures and order away.<br><b style="text-align: center;display: block;">Note: OTP is only valid for 5 minutes.</b></p><h2 style="font-size: 1.9em;background: #FFD243;margin: 0 auto;width: max-content;padding: 0 15px;color: #fff;border-radius: 4px;">{otp}</h2><p style="font-size:1.2em;">Regards,<br/>Team Swaad</p><hr style="border:none;border-top:1px solid #eee" /><div style="float:right;padding:8px 0;color:#aaa;font-size:1.2em;line-height:1;font-weight:500"><p>Swaad</p><p>Boys Hostel, Near Girl Hostel AKGEC</p><p>Ghaziabad</p></div></div></div>', 'swaad.info.contact@gmail.com', (email,))
+        msg.content_subtype = "html"
+        msg.send()
 
-    time_created = int(time.time())
+        time_created = int(time.time())
+        OTP.objects.create(otp=otp, otp_email = email, time_created = time_created)
 
-    OTP.objects.create(otp=otp, otp_email = email, time_created = time_created)
+        if signup_otp:
+            return
+        else:
+            return Response({"OTP has been successfully sent to your email."})
 
 def send_otp_email(email,subject):
     
@@ -196,7 +199,7 @@ class SignUpOTPVerification(APIView):
                 user.save()
                 return Response({
                     'verified':True,
-                    'status':'OTP verified, proceed to registration.'
+                    'status':'OTP verified, proceed to login.'
                 })
             else:
                 return Response({
