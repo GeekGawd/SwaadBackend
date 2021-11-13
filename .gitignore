@@ -1,9 +1,5 @@
 .env
 seller/factories.py
-<<<<<<< HEAD
 seller/management/
 staticfiles/
 mydatabase
-=======
-staticfiles/
->>>>>>> f917b26c3852b4ca8eae54401600f2780927b07e
