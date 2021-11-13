@@ -1,5 +1,6 @@
 from rest_framework import generics, status, authentication, permissions
 from django.shortcuts import redirect, reverse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
@@ -62,7 +63,6 @@ class LoginView(APIView):
             return Response({
                 'status':'User not validated, please goto login/otp'
             })
-
 
 def login_send_otp_email(email,subject="[OTP] New Login for Swaad App", signup_otp = False):
     
@@ -158,17 +158,14 @@ class SignUpOTP(APIView):
             if request_email:
                 try:
                     user = User.objects.get(email__iexact = request_email)
+                    login_send_otp_email(email=request_email)
+                    return Response({'status':'OTP sent successfully.'},status = status.HTTP_200_OK)
                 except:
-                    return Response({
-                        'validation':False,
-                        'status':'There is no such email registered'
-                    })
-                
-                return
+                    return Response({'status':'Given email is not registered.'}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
             else:
                 return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"status":"user registered already"},status = status.HTTP_400_BAD_REQUEST)
+            return Response({"status":"user registered already"},status = status.HTTP_403_FORBIDDEN)
                 
             
             
