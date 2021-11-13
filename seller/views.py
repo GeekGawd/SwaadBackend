@@ -1,5 +1,7 @@
+from django.db.models import query
 from django.http import JsonResponse
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 from rest_framework import status, viewsets
 from core.models import User
@@ -16,6 +18,8 @@ import random, time, datetime
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     serializer_class = CategorySerializer
@@ -43,7 +47,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
 class CreateSellerView(APIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
-
+    permission_classes = [AllowAny]
     def post(self, request):
         data = request.data
         request_email = data.get('email', )
@@ -109,6 +113,15 @@ class CustomerGetRestaurants(APIView):
 
         return Response(restaurants, status=status.HTTP_200_OK)
 
+class SearchView(generics.ListAPIView):
+    serializer_class = RestaurantSerializer
+    queryset = Restaurant.objects.all()
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    search_fields = ('rest_name', )
+    # ordering_fields = ['avg_rating']
+    
+    # def get_queryset(self):
+    #     request = self.request
 
 class RestaurantAddDish(APIView):
 

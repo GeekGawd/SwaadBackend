@@ -163,13 +163,11 @@ class LoginOTP(APIView):
 class LoginOTPverification(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-
         request_otp   = request.data.get("otp",)
         request_email = request.data.get("email")
 
         if request_email:
             try:
-
                 request_model = OTP.objects.get(otp_email__iexact = request_email)
                 user = User.objects.get(email__iexact = request_email)
             except:

@@ -27,9 +27,9 @@ class Cart(APIView):
             customer = Customer.objects.get(user=user_id)
             address = Customer.objects.get(user=user_id).address
 
-            # Check whether customer has any order that is not delivered
-            if Order.objects.filter(customer = customer):
-                return Response({"status": "failed", "error": "Your last order must be completed."})
+            # # Check whether customer has any order that is not delivered
+            # if Order.objects.filter(customer = customer):
+            #     return Response({"status": "failed", "error": "Your last order must be completed."})
 
             # Check Address
             # try:
@@ -54,7 +54,7 @@ class Cart(APIView):
                     address = address
                 )
 
-                # Step 2 - Create Order details
+
                 for dish in order_details:
                     OrderDetails.objects.create(
                         order = order,
@@ -106,7 +106,18 @@ class LatestOrder(APIView):
 
         return Response({"order": order})
 
+class GetAllCustomerOrder(APIView):
+    serializer_class = OrderSerializer
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
         
+        user_id = Token.objects.get(key=request.auth.key).user_id
+        customer = Customer.objects.get(user=user_id)
+        order = OrderSerializer(Order.objects.filter(customer = customer)).data
+
+        return Response({"order": order})
         
         
         

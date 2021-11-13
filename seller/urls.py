@@ -34,6 +34,7 @@ urlpatterns = [
     path('register/', views.CreateSellerView.as_view(), name='register'),
     path('login/', views.LoginView.as_view(), name='login'),
     path('customer/restaurants/', views.CustomerGetRestaurants.as_view()),
+    path('customer/restaurants/list/', views.SearchView.as_view()),
     path('customer/rating/<dish_id>', views.CustomerRating.as_view()),
     path('customer/rating', views.CustomerRating.as_view()),
     path('customer/dish/<restaurant_id>/', views.CustomerGetDish.as_view()),
