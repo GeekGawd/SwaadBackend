@@ -11,6 +11,6 @@ urlpatterns = [
     path('password/reset/', views.PasswordReset.as_view(), name='passwordreset'),
     path('password/reset/verify/', views.PasswordResetOTPConfirm.as_view(), name='passwordresetconfirmation'),
     path('signup/verify', views.SignUpOTPVerification.as_view(), name = 'loginotpverification'),
-    path('signup/resend', views.login_send_otp_email, name = 'loginotpverification'),
+    path('signup/resend/<str:email>/', views.login_send_otp_email, name = 'loginotpverification'),
     path('profile/', views.ManageUserView.as_view(), name='loggedinuser'),
 ]
