@@ -1,4 +1,5 @@
 from rest_framework import generics, status, authentication, permissions
+from django.shortcuts import redirect, reverse
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
@@ -29,6 +30,8 @@ class CreateUserView(APIView):
                 login_send_otp_email(request_email, signup_otp = True)
                 return Response({'status' : 'User registered successfully and an OTP has been sent to your email.'})
             return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
+        if user.is_active is False:
+            return redirect(reverse('signupverification'))
         return Response({'status' : 'Entered email is already registered.'})
         
 
@@ -146,26 +149,26 @@ class PasswordResetOTPConfirm(APIView):
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
 
-# class SignUpOTP(APIView):
-#     permission_classes = [AllowAny]
-#     def post(self, request):
-#         request_email = request.data.get("email",)
-#         user = User.objects.get(email__iexact = request_email)
-#         if user.is_active is False:
-#             if request_email:
-#                 try:
-#                     user = User.objects.get(email__iexact = request_email)
-#                 except:
-#                     return Response({
-#                         'validation':False,
-#                         'status':'There is no such email registered'
-#                     })
+class SignUpOTP(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        request_email = request.data.get("email",)
+        user = User.objects.get(email__iexact = request_email)
+        if user.is_active is False:
+            if request_email:
+                try:
+                    user = User.objects.get(email__iexact = request_email)
+                except:
+                    return Response({
+                        'validation':False,
+                        'status':'There is no such email registered'
+                    })
                 
-#                 return
-#             else:
-#                 return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
-#         else:
-#             return Response({"status":"user registered already"},status = status.HTTP_400_BAD_REQUEST)
+                return
+            else:
+                return Response({"status":"please enter an email id"},status = status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"status":"user registered already"},status = status.HTTP_400_BAD_REQUEST)
                 
             
             
@@ -190,7 +193,7 @@ class SignUpOTPVerification(APIView):
             current_time = int(time.time())
 
             if current_time - request_time > 300:
-                return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_403_FORBIDDEN)
             
             if str(request_otp) == str(otp) and request_email == email:
                 otp_instance.save()
@@ -200,13 +203,12 @@ class SignUpOTPVerification(APIView):
                 return Response({
                     'verified':True,
                     'status':'OTP verified, proceed to login.'
-                })
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'verified':False,
                     'status':'OTP incorrect.'
-
-                })
+                }, status=status.HTTP_400_BAD_REQUEST)
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """Manage the authenticated user"""
