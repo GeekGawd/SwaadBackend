@@ -17,6 +17,6 @@ urlpatterns = [
     # path('signup/resend/<str:email>', views.login_send_otp_email, name = 'loginotpverification'),
 
     path('signup/sendotp/', views.SignUpOTP.as_view(), name = 'sendotp'),
-    
+     
     path('profile/', views.ManageUserView.as_view(), name='loggedinuser'),
 ]
