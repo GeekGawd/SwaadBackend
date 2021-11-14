@@ -5,7 +5,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.settings import api_settings
 from core.models import *
-from user.serializers import UserSerializer, AuthTokenSerializer
+from user.serializers import LoginSerializer, UserSerializer, AuthTokenSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
 from rest_framework.permissions import AllowAny
@@ -13,6 +13,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
 from django.utils import timezone
+from django.contrib.auth import authenticate
+import jwt
+from django.conf import settings
 
 class CreateUserView(APIView):
     """Create a new user in the system"""
@@ -36,51 +39,76 @@ class CreateUserView(APIView):
         return Response({'status' : 'Entered email is already registered.'})
         
 
-# class LoginView(APIView):
-#     """Create a new auth token for user"""
-#     # serializer_class = AuthTokenSerializer
-#     # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-#     permission_classes = [AllowAny]
-    # def post(self, request, *args, **kwargs):
-    #     request_email = request.data.get('email',)
-    #     try:
-    #         user1 = User.objects.get(email__iexact = request_email)
-    #     except: 
-    #         return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
-    #     if user1.is_active is True:
-    #         serializer = AuthTokenSerializer(data=request.data,  context={'request': request})
-    #         serializer.is_valid(raise_exception=True)
-    #         user = serializer.validated_data['user']
-    #         token, created = Token.objects.get_or_create(user=user)
-    #         name = user1.name
-    #         return Response({
-    #             'token': token.key,
-    #             'name': name
-    #             }, status = status.HTTP_200_OK)
-    #     else:
-    #         return Response({
-    #             'status':'User not validated, please goto login/otp'
-    #         },status=status.HTTP_401_UNAUTHORIZED)
-
 class LoginAPIView(APIView):
-    serializer_class = AuthTokenSerializer
+    """Create a new auth token for user"""
+    # serializer_class = AuthTokenSerializer
+    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
     permission_classes = [AllowAny]
-    
-    def post(self, request):
-
+    def post(self, request, *args, **kwargs):
         request_email = request.data.get('email',)
         try:
             user1 = User.objects.get(email__iexact = request_email)
         except: 
             return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
-        if user1.is_active:
-            serializer = self.serializer_class(data=request.data)
+
+        if user1.is_active is True:
+
+            serializer = AuthTokenSerializer(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
+            # user = serializer.validated_data['user']
+            # name = user1.name
+            # return Response({
+            #     'token': token.key,
+            #     'name': name
+            #     }, status = status.HTTP_200_OK)
+
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status':'User is not verified. Please verify your account.'
+                'status':'User not validated, please goto login/otp'
             },status=status.HTTP_401_UNAUTHORIZED)
+
+# class LoginAPIView(APIView):
+#     serializer_class = LoginSerializer
+
+#     def post(self, request):
+#         data = request.data
+#         username = data.get('username', '')
+#         password = data.get('password', '')
+#         user = authenticate(username=username, password=password)
+
+#         if user:
+#             auth_token = jwt.encode(
+#                 {'username': user.username}, settings.JWT_SECRET_KEY, algorithm="HS256")
+
+#             serializer = UserSerializer(user)
+
+#             data = {'user': serializer.data, 'token': auth_token}
+
+#             return Response(data, status=status.HTTP_200_OK)
+
+#             # SEND RES
+#         return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# class LoginAPIView(APIView):
+#     serializer_class = AuthTokenSerializer
+#     permission_classes = [AllowAny]
+    
+#     def post(self, request):
+
+#         request_email = request.data.get('email',)
+#         try:
+#             user1 = User.objects.get(email__iexact = request_email)
+#         except: 
+#             return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
+#         if user1.is_active:
+#             serializer = self.serializer_class(data=request.data)
+#             serializer.is_valid(raise_exception=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             return Response({
+#                 'status':'User is not verified. Please verify your account.'
+#             },status=status.HTTP_401_UNAUTHORIZED)
 
 def login_send_otp_email(email,subject="[OTP] New Login for Swaad App", signup_otp = False):
     

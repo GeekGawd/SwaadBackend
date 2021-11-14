@@ -1,3 +1,5 @@
+import re
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 from django.utils import timezone
@@ -40,6 +42,17 @@ class User(AbstractBaseUser, PermissionsMixin):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }
+
+    def refresh(self):
+        refresh=RefreshToken.for_user(self)
+        return str(refresh)
+    
+    def access(self):
+        refresh = RefreshToken.for_user(self)
+        return str(refresh.access_token)
+
+    def get_name(self):
+        return str(self.name)
 
 class OTP(models.Model):
     otp = models.IntegerField()
