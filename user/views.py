@@ -33,11 +33,9 @@ class CreateUserView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 login_send_otp_email(request_email, signup_otp = True)
-                return Response({'status' : 'User registered successfully and an OTP has been sent to your email.'})
-            return Response({'status' : 'Registration was not successful. Please enter the details carefully.'})
-        if user.is_active is False:
-            return redirect(reverse('signupverification'))
-        return Response({'status' : 'Entered email is already registered.'})
+                return Response({'status' : 'User registered successfully and an OTP has been sent to your email.'}, status=status.HTTP_201_CREATED)
+            return Response({'status' : 'Registration was not successful. Please enter the details carefully.'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response({'status' : 'Entered email is already registered.'}, status=status.HTTP_403_FORBIDDEN)
         
 
 class LoginAPIView(APIView):
@@ -277,7 +275,7 @@ class ChangePassword(APIView):
 
 
     def patch(self, request, *args, **kwargs):
-        request_email = request.data.get('email', )
+        request_email = request.data.get('email',)
         user = User.objects.get(email = request_email)
 
         serializer = ChangePasswordSerializer(data=request.data)
