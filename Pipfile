@@ -15,6 +15,7 @@ gunicorn = "*"
 djangorestframework-simplejwt = "*"
 faker = "*"
 channels = "*"
+pyjwt = "*"
 
 [dev-packages]
 

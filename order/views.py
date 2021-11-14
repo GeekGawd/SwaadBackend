@@ -5,7 +5,6 @@ from rest_framework.settings import api_settings
 from core.models import *
 from order.models import *
 from order.serializers import CustomerSerializer, OrderSerializer
-from user.serializers import UserSerializer, AuthTokenSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
 from rest_framework.permissions import AllowAny

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 from django.utils import timezone
-
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserManager(BaseUserManager):
@@ -33,6 +33,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+    def tokens(self):
+        refresh=RefreshToken.for_user(self)
+        return{
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
 
 class OTP(models.Model):
     otp = models.IntegerField()

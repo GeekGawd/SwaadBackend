@@ -76,31 +76,51 @@ class CreateSellerView(APIView):
 
         
 
-class LoginView(ObtainAuthToken):
-    """Create a new auth token for user"""
-    # serializer_class = AuthTokenSerializer
-    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-    def post(self, request, *args, **kwargs):
+# class LoginView(ObtainAuthToken):
+#     """Create a new auth token for user"""
+#     # serializer_class = AuthTokenSerializer
+#     # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+#     def post(self, request, *args, **kwargs):
+#         request_email = request.data.get('email',)
+#         try:
+#             user1 = User.objects.get(email__iexact = request_email)
+#             user1.restaurant
+#         except:
+#             return Response({
+#                 'detail':'User not registered'
+#             })
+#         if user1.is_active is True:
+#             serializer = AuthTokenSerializer(data=request.data, context={'request':request})
+#             serializer.is_valid(raise_exception=True)
+#             user = serializer.validated_data['user']
+#             token, created = Token.objects.get_or_create(user=user)
+#             return Response({
+#                 'token':token.key
+#             })
+#         else:
+#             return Response({
+#                 'status':'User is not validated. Please verify the registered email id'
+#             })
+
+class LoginAPIView(APIView):
+    serializer_class = AuthTokenSerializer
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+
         request_email = request.data.get('email',)
         try:
             user1 = User.objects.get(email__iexact = request_email)
-            user1.restaurant
-        except:
-            return Response({
-                'detail':'User not registered'
-            })
-        if user1.is_active is True:
-            serializer = AuthTokenSerializer(data=request.data, context={'request':request})
+        except: 
+            return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
+        if user1.is_active:
+            serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'token':token.key
-            })
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status':'User is not validated. Please verify the registered email id'
-            })
+                'status':'User is not verified. Please verify your account.'
+            },status=status.HTTP_401_UNAUTHORIZED)
 
 class CustomerGetRestaurants(APIView):
     

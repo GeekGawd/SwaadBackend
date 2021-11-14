@@ -1,7 +1,12 @@
+from os import stat, write
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import fields
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.response import Response
+
+from core.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -32,15 +37,14 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class AuthTokenSerializer(serializers.Serializer):
+class AuthTokenSerializer(serializers.ModelSerializer):
     """Serializer for the user authentication object"""
     email = serializers.CharField(required=True, error_messages={"required": "Email field may not be blank."})
-    password = serializers.CharField(
-        style={'input_type': 'password'},
-        required=True, 
-        error_messages={"required": "password field may not be blank."},
-        trim_whitespace=False
-    )
+    password = serializers.CharField(write_only=True, min_length=5)
+    
+    class Meta:
+        model = User
+        fields = ['email','tokens', 'password']
 
     def validate(self, attrs):
         """Validate and authenticate the user"""
@@ -53,8 +57,27 @@ class AuthTokenSerializer(serializers.Serializer):
             password=password
         )
         if not user:
-            msg = _('Unable to authenticate with provided credentials')
-            raise serializers.ValidationError(msg, code='authentication')
-
-        attrs['user'] = user
+            return Response({'status': 'Unable to authenticate with provided credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        attrs['tokens'] = user.tokens
         return attrs
+
+# class LoginSerializer(serializers.Serializer):
+#     email = serializers.EmailField(max_length = 255, min_length = 9)
+#     password = serializers.CharField(style={'input_type': 'password'},trim_whitespace=False, write_only=True)
+
+#     def validate(self, attrs):
+#         email = attrs.get('email',)
+#         password = attrs.get('password',)
+
+#         user = authenticate(email=email, password=password)
+
+#         if not user:
+#             return Response({'status': "Unable to authenticate with provided credentials" }, status=status.HTTP_400_BAD_REQUEST)
+
+#         return{
+#             'email': user.email,
+#             'tokens': user.tokens
+#         }
+#         return super().validate(attrs)
+
+

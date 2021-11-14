@@ -32,7 +32,7 @@ from seller import views
 urlpatterns = [
     # path('', include(router.urls)),
     path('register/', views.CreateSellerView.as_view(), name='register'),
-    path('login/', views.LoginView.as_view(), name='login'),
+    path('login/', views.LoginAPIView.as_view(), name='login'),
     path('customer/restaurants/', views.CustomerGetRestaurants.as_view()),
     path('customer/restaurants/list/', views.SearchView.as_view()),
     path('customer/rating/<dish_id>', views.CustomerRating.as_view()),

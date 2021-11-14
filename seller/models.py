@@ -1,6 +1,5 @@
 from enum import unique
 from django.db import models
-
 # Create your models here.
 from django.db.models import Q
 from django.conf.urls import url

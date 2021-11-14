@@ -6,7 +6,7 @@ app_name = 'user'
 urlpatterns = [
     path('register/', views.CreateUserView.as_view(), name='register'),
 
-    path('login/', views.LoginView.as_view(), name='login'),
+    path('login/', views.LoginAPIView.as_view(), name='login'),
 
     path('password/reset/', views.PasswordReset.as_view(), name='passwordreset'),
 
