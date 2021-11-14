@@ -169,13 +169,13 @@ class PasswordResetOTPConfirm(APIView):
             current_time = int(time.time())
 
             if current_time - request_time > 300:
-                return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_408_REQUEST_TIMEOUT)
 
             if str(otp_instance.otp) != str(request_otp):
-                 return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP."},status = status.HTTP_400_BAD_REQUEST)
+                 return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP."},status = status.HTTP_409_CONFLICT)
             
             if (request_email != email):
-                return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_400_BAD_REQUEST)
+                return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_401_UNAUTHORIZED)
 
 
             
@@ -289,4 +289,4 @@ class ChangePassword(APIView):
             user.save()
             return Response({'status': "New Password Set"},status=status.HTTP_204_NO_CONTENT)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
