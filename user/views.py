@@ -1,11 +1,11 @@
+
+from re import S
 from rest_framework import generics, serializers, status, authentication, permissions
 from django.shortcuts import redirect, reverse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.settings import api_settings
 from core.models import *
-from user.serializers import LoginSerializer, UserSerializer, AuthTokenSerializer
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from user.serializers import LoginSerializer, UserSerializer, AuthTokenSerializer, ChangePasswordSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
 from rest_framework.permissions import AllowAny
@@ -15,6 +15,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.contrib.auth import authenticate
 import jwt
+from django.contrib.auth.hashers import check_password, make_password
 from django.conf import settings
 
 class CreateUserView(APIView):
@@ -49,19 +50,10 @@ class LoginAPIView(APIView):
         try:
             user1 = User.objects.get(email__iexact = request_email)
         except: 
-            return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({'status':'User not registered'}, status=status.HTTP_401_UNAUTHORIZED)
         if user1.is_active is True:
-
             serializer = AuthTokenSerializer(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
-            # user = serializer.validated_data['user']
-            # name = user1.name
-            # return Response({
-            #     'token': token.key,
-            #     'name': name
-            #     }, status = status.HTTP_200_OK)
-
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({
@@ -152,8 +144,8 @@ class PasswordReset(APIView):
         except: 
             return Response({"status" : "No such account exists"},status = status.HTTP_400_BAD_REQUEST)
 
-        if hasattr(user, 'auth_token'):
-            user.auth_token.delete()
+        # if hasattr(user, 'auth_token'):
+        #     user.auth_token.delete()
 
         send_otp_email(email = request_email,subject="[OTP] Password Change for Swaad App") 
 
@@ -188,9 +180,8 @@ class PasswordResetOTPConfirm(APIView):
                 return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_400_BAD_REQUEST)
 
 
-            OTP.objects.filter(otp_email__iexact = request_email).delete()
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({"status": "OTP verified You can now change your password", "token": token.key}, status = status.HTTP_200_OK)
+            
+            return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
@@ -213,8 +204,6 @@ class SignUpOTP(APIView):
         else:
             return Response({"status":"User verified already"},status = status.HTTP_403_FORBIDDEN)
                 
-            
-            
 class SignUpOTPVerification(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -238,7 +227,6 @@ class SignUpOTPVerification(APIView):
                 return Response({"status" : "Sorry, entered OTP has expired."}, status = status.HTTP_403_FORBIDDEN)
             
             if str(request_otp) == str(otp) and request_email == email:
-                otp_instance.save()
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 user.is_active = True
                 user.save()
@@ -250,12 +238,57 @@ class SignUpOTPVerification(APIView):
                     'status':'OTP incorrect.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-class ManageUserView(generics.RetrieveUpdateAPIView):
-    """Manage the authenticated user"""
-    serializer_class = UserSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
+# class ManageUserView(generics.RetrieveUpdateAPIView):
+#     """Manage the authenticated user"""
+#     serializer_class = UserSerializer
 
-    def get_object(self):
-        """Retrieve and return authentication user"""
-        return self.request.user
+#     def get_object(self):
+#         """Retrieve and return authentication user"""
+#         return self.request.user
+
+# class ChangePassword(APIView):
+#     permission_classes = [AllowAny] 
+#     serializer_class = UserSerializer
+#     def post(self, request, *args, **kwargs):
+#         request_email = request.data.get('email', )
+#         request_password = request.data.get('password', )
+
+#         request_name = request.data.get('name', )
+#         serializer = self.serializer_class(data=request.data)
+#         try:
+#             user = User.objects.get(email = request_email)
+#         except:
+#             return Response({'status': 'Given email is not registered.'}, status=status.HTTP_408_REQUEST_TIMEOUT)
+
+        # if check_password(request_password, user.password) is not True:
+#             if user.is_active is True:
+#                 if serializer.is_valid():
+#                     serializer.save()
+#                     return Response({'status' : 'User password changed successfully.'})
+#                 return Response({"status": "Invalid details."})
+#             return Response({'status': 'User is not verified.'}, status= status.HTTP_401_UNAUTHORIZED)
+#         return Response({'status': 'New Password cannot be the same as Old Password.'}, status= status.HTTP_406_NOT_ACCEPTABLE)
+            
+class ChangePassword(APIView):
+    """
+    An endpoint for changing password.
+    """
+    permission_classes = (AllowAny, )
+
+
+    def patch(self, request, *args, **kwargs):
+        request_email = request.data.get('email', )
+        user = User.objects.get(email = request_email)
+
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            
+            if check_password(request.data.get("new_password"), user.password) is True:
+                return Response({"old_password": ["Wrong password."]}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            return Response({'status': "New Password Set"},status=status.HTTP_204_NO_CONTENT)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

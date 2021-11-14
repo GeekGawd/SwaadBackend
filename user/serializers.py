@@ -1,6 +1,8 @@
 from os import stat, write
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import fields
+from django.core.exceptions import ValidationError
+import re
 from django.http import request
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers, status
@@ -22,7 +24,6 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
             'name': {'required': True,'error_messages': {"required": "Name field may not be blank."}},
             }
-
         
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
@@ -33,11 +34,29 @@ class UserSerializer(serializers.ModelSerializer):
         user = super().update(instance, validated_data)
 
         if password:
-            user.set_password(password)
+            user.set_password(validated_data['password'])
             user.save()
-
         return user
 
+class ChangePasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, password):
+        if not re.findall('\d', password):
+            raise ValidationError(
+                _("The password must contain at least 1 digit, 0-9."),
+                code='password_no_number',
+            )
+        if not re.findall('[A-Z]', password):
+            raise ValidationError(
+                _("The password must contain at least 1 uppercase letter, A-Z."),
+                code='password_no_upper',
+            )
+        if not re.findall('[a-z]', password):
+            raise ValidationError(
+                _("The password must contain at least 1 lowercase letter, a-z."),
+                code='password_no_lower',
+            )
 
 class AuthTokenSerializer(serializers.ModelSerializer):
     """Serializer for the user authentication object"""
@@ -67,7 +86,7 @@ class AuthTokenSerializer(serializers.ModelSerializer):
         )
 
         if not user:
-            return Response({'status': 'Unable to authenticate with provided credentials'}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError('Unable to authenticate with provided credentials')
  
         return {
             'email' : user.email,
