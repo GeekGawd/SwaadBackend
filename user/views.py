@@ -144,6 +144,8 @@ class PasswordReset(APIView):
 
         # if hasattr(user, 'auth_token'):
         #     user.auth_token.delete()
+        if user.is_active:
+            return Response({"status": "Verify your account first."}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         send_otp_email(email = request_email,subject="[OTP] Password Change for Swaad App") 
 
@@ -278,15 +280,15 @@ class ChangePassword(APIView):
             return Response({"status": "Given User email is not registered." }, 
                                 status=status.HTTP_403_FORBIDDEN)
         serializer = ChangePasswordSerializer(data=request.data)
-        if user.is_active:
-            if serializer.is_valid():
-                if check_password(request.data.get("new_password",), user.password):
-                    return Response({"status": "New password cannot be the same as old password." }, 
-                                    status=status.HTTP_400_BAD_REQUEST)
-                user.set_password(serializer.data.get("new_password"))
-                user.save()
-                return Response({'status': "New Password Set"},status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
-        return Response({"status": "Verify your account first."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if serializer.is_valid():
+            if check_password(request.data.get("new_password",), user.password):
+                return Response({"status": "New password cannot be the same as old password." }, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            return Response({'status': "New Password Set"},status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+
 
         
