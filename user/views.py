@@ -278,14 +278,17 @@ class ChangePassword(APIView):
             return Response({"status": "Given User email is not registered." }, 
                                 status=status.HTTP_403_FORBIDDEN)
         serializer = ChangePasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            
-            if check_password(request.data.get("new_password"), user.password) is True:
-                return Response({"status": "New password cannot be the same as old password." }, 
-                                status=status.HTTP_400_BAD_REQUEST)
+        if user.is_active:
+            if serializer.is_valid():
+                print(user.password)
+                if not user.check_password(request.data.get("new_password")):
+                    return Response({"status": "New password cannot be the same as old password." }, 
+                                    status=status.HTTP_400_BAD_REQUEST)
 
-            user.set_password(serializer.data.get("new_password"))
-            user.save()
-            return Response({'status': "New Password Set"},status=status.HTTP_200_OK)
+                user.set_password(serializer.data.get("new_password"))
+                user.save()
+                return Response({'status': "New Password Set"},status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"status": "Verify your account first."}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        
