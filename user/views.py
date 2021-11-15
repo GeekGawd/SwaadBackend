@@ -56,7 +56,7 @@ class LoginAPIView(APIView):
         else:
             return Response({
                 'status':'User not validated, please goto login/otp'
-            },status=status.HTTP_401_UNAUTHORIZED)
+            },status=status.HTTP_403_FORBIDDEN)
 
 # class LoginAPIView(APIView):
 #     serializer_class = LoginSerializer
