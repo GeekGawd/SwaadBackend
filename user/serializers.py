@@ -24,7 +24,23 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
             'name': {'required': True,'error_messages': {"required": "Name field may not be blank."}},
             }
-        
+    def validate_password(self, password):
+        if not re.findall('\d', password):
+            raise ValidationError(
+                _("The password must contain at least 1 digit, 0-9."),
+                code='password_no_number',
+            )
+        if not re.findall('[A-Z]', password):
+            raise ValidationError(
+                _("The password must contain at least 1 uppercase letter, A-Z."),
+                code='password_no_upper',
+            )
+        if not re.findall('[a-z]', password):
+            raise ValidationError(
+                _("The password must contain at least 1 lowercase letter, a-z."),
+                code='password_no_lower',
+            )
+
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
         return get_user_model().objects.create_user(**validated_data)

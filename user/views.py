@@ -267,9 +267,6 @@ class SignUpOTPVerification(APIView):
 #         return Response({'status': 'New Password cannot be the same as Old Password.'}, status= status.HTTP_406_NOT_ACCEPTABLE)
             
 class ChangePassword(APIView):
-    """
-    An endpoint for changing password.
-    """
     permission_classes = (AllowAny, )
 
 
@@ -289,6 +286,6 @@ class ChangePassword(APIView):
 
             user.set_password(serializer.data.get("new_password"))
             user.save()
-            return Response({'status': "New Password Set"},status=status.HTTP_204_NO_CONTENT)
+            return Response({'status': "New Password Set"},status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
