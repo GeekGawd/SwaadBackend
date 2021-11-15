@@ -74,6 +74,8 @@ class ChangePasswordSerializer(serializers.Serializer):
                 code='password_no_lower',
             )
 
+        return password
+
 class AuthTokenSerializer(serializers.ModelSerializer):
     """Serializer for the user authentication object"""
     email = serializers.CharField(required=True, error_messages={"required": "Email field may not be blank."})
