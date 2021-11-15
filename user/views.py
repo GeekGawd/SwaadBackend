@@ -134,6 +134,7 @@ def send_otp_email(email,subject):
 
 class PasswordReset(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request):
         request_email = request.data.get("email", )
 
@@ -145,11 +146,9 @@ class PasswordReset(APIView):
         # if hasattr(user, 'auth_token'):
         #     user.auth_token.delete()
         if user.is_active:
-            return Response({"status": "Verify your account first."}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        send_otp_email(email = request_email,subject="[OTP] Password Change for Swaad App") 
-
-        return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)
+            send_otp_email(email = request_email,subject="[OTP] Password Change for Swaad App") 
+            return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)
+        return Response({"status": "Please verify your account."}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class PasswordResetOTPConfirm(APIView):
@@ -178,8 +177,6 @@ class PasswordResetOTPConfirm(APIView):
             
             if (request_email != email):
                 return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_401_UNAUTHORIZED)
-
-
             
             return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
 
