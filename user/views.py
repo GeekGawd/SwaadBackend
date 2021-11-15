@@ -169,7 +169,7 @@ class PasswordResetOTPConfirm(APIView):
             current_time = int(time.time())
 
             if current_time - request_time > 300:
-                return Response({"status" : "Sorry, entered OTP has expired."},status = status.HTTP_408_REQUEST_TIMEOUT)
+                return Response({"status" : "Sorry, entered OTP has expired.", "entered otp": request_otp},status = status.HTTP_408_REQUEST_TIMEOUT)
 
             if str(otp_instance.otp) != str(request_otp):
                  return Response({"status" : "Sorry, entered OTP doesn't match the sent OTP."},status = status.HTTP_409_CONFLICT)
@@ -192,7 +192,6 @@ class SignUpOTP(APIView):
         if user.is_active is False:
             if request_email:
                 try:
-                    user = User.objects.get(email__iexact = request_email)
                     login_send_otp_email(email=request_email)
                     return Response({'status':'OTP sent successfully.'},status = status.HTTP_200_OK)
                 except:
@@ -276,13 +275,16 @@ class ChangePassword(APIView):
 
     def patch(self, request, *args, **kwargs):
         request_email = request.data.get('email',)
-        user = User.objects.get(email = request_email)
-
+        try:   
+            user = User.objects.get(email__iexact = request_email)
+        except:
+            return Response({"status": "Given User email is not registered." }, 
+                                status=status.HTTP_403_FORBIDDEN)
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():
             
             if check_password(request.data.get("new_password"), user.password) is True:
-                return Response({"old_password": ["Wrong password."]}, 
+                return Response({"status": "New password cannot be the same as old password." }, 
                                 status=status.HTTP_400_BAD_REQUEST)
 
             user.set_password(serializer.data.get("new_password"))
