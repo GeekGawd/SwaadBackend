@@ -45,7 +45,7 @@ class Command(BaseCommand):
         fake = Faker(["en_IN"])
         fake.add_provider(Provider)
         
-        for _ in range(300):
+        for _ in range(15):
             mail = fake.email()
             name = fake.name()
             is_active = True
@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 is_active = is_active
             )
 
-        for _ in range(1, 301):
+        for _ in range(1, 16):
             user_id = _
             user = User.objects.get(id = user_id)
             rest_name = fake.company()
@@ -70,7 +70,7 @@ class Command(BaseCommand):
                 address = address
             )
         
-        for _ in range(1, 301):
+        for _ in range(1, 16):
             rest_id = randint(1, 15)
             rest = Restaurant.objects.get(id = rest_id)
             temp = randint(50, 600)
