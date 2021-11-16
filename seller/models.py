@@ -1,10 +1,12 @@
 from enum import unique
 from django.db import models
+
 # Create your models here.
 from django.db.models import Q
 from django.conf.urls import url
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.aggregates import Count
 from core.models import User
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
@@ -41,7 +43,9 @@ class Restaurant(models.Model):
     rest_name = models.CharField(max_length=200)
     phone = models.CharField(max_length=500)
     address = models.CharField(max_length=500)
-
+    # image = models.ImageField(upload_to = 'img/restaurant_images', blank = True, null = True)
+    image = models.URLField(default='https://media.istockphoto.com/photos/modern-restaurant-interior-design-picture-id1211547141?k=20&m=1211547141&s=612x612&w=0&h=KiZX3NBZVCK4MlSh4BJ8hZNSJcTIMbNSSV2yusw2NmM=')
+   
     # objects = RestaurantManager()
     
     def __str__(self):
@@ -61,10 +65,19 @@ class Restaurant(models.Model):
             return float(sum)/len(ratings)
         else:
             return 0
-            
-            
+    
+    def ret_avg_price(self):
+        sum = 0
+        dishes = Dish.objects.filter(restaurant=self)
+        number = len(dishes)
+        if number>0:
+            for dish in dishes:
+                sum += dish.price
+            return float(sum)/number
+
 class Dish(models.Model):
-    photo = models.ImageField(upload_to = 'img/Dish_images', blank = True, null = True)
+    # image = models.ImageField(upload_to = 'img/Dish_images', blank = True, null = True)
+    image = models.URLField(default='https://media.istockphoto.com/photos/food-backgrounds-table-filled-with-large-variety-of-food-picture-id1155240408?k=20&m=1155240408&s=612x612&w=0&h=Zvr3TwVQ-wlfBnvGrgJCtv-_P_LUcIK301rCygnirbk=')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     price = models.FloatField(validators=[MinValueValidator(0)])
     title = models.CharField(max_length=200)
@@ -75,6 +88,21 @@ class Dish(models.Model):
 
     def __str__(self):
         return self.title
+
+    def no_of_ratings(self):
+        ratings = Rating.objects.filter(dish=self)
+        return len(ratings)
+
+    def avg_rating(self):
+        sum = 0
+        ratings = Rating.objects.filter(dish=self)
+
+        if len(ratings)>0:
+            for rating in ratings:
+                sum += rating.stars
+            return float(sum)/len(ratings)
+        else:
+            return 0
 
 class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

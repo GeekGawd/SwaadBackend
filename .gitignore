@@ -1,3 +1,4 @@
 .env
 seller/factories.py
 staticfiles/
+payments/

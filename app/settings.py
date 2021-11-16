@@ -89,6 +89,9 @@ DATABASES = {
     }
 }
 
+# STRIPE_PUBLIC_KEY = "pk_test_51JtwuoSCTumaJV0sR1XcqhqLUh9KoaIoclLQMar6UGH7ED2o8D5r1IbwLmjKUtGamFObwux5aiTjNnZ8sfrrUqu800HJm70gae"
+# STRIPE_SECRET_KEY = "sk_test_51JtwuoSCTumaJV0sjoczR3yJxY4pPHb8tPQyfaf2xrg6nB7i5P8KIPR1NvTA5zlAbAIwdLsJUr5PAsnRNyTvEgrT00UNdKRk4v"
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -127,6 +130,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 django_heroku.settings(locals())
 
@@ -184,4 +190,3 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-
