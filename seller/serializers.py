@@ -43,7 +43,6 @@ class DishSerializer(ModelSerializer):
         model = Dish
         fields = [
             'id',
-            'photo',
             'title',
             'price',
             'image',
