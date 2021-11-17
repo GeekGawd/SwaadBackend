@@ -30,6 +30,7 @@ class RestaurantSerializer(ModelSerializer):
         fields = [
             'id',
             'user',
+            'image',
             'rest_name',
             'phone',
             'address',
@@ -42,7 +43,7 @@ class DishSerializer(ModelSerializer):
         model = Dish
         fields = [
             'id',
-            'photo',
+            'image',
             'title',
             'price',
             'category',
@@ -58,7 +59,7 @@ class AllInfoSerializer(ModelSerializer):
         model = Dish
         fields = [
             'id',
-            'photo',
+            'image',
             'title',
             'price',
             'category',
