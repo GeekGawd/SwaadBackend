@@ -122,16 +122,16 @@ class AuthTokenSerializer(serializers.Serializer):
         return attrs
 
 class DishSerializer(ModelSerializer):
-    photo = serializers.SerializerMethodField()
+    # image = serializers.SerializerMethodField()
 
-    def get_photo(self, dish):
+    def get_image(self, dish):
         request = self.context.get('request')
-        image_url = dish.photo.url
+        image_url = dish.image.url
         return request.build_absolute_uri(image_url)
 
     class Meta:
         model = Dish
-        fields = ("id", "title", "photo", "price", "veg")
+        fields = ("id", "title", "image", "price", "veg")
 
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
