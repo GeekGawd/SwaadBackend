@@ -134,11 +134,10 @@ class CustomerGetRestaurants(APIView):
         return Response(restaurants, status=status.HTTP_200_OK)
 
 class SearchView(generics.ListAPIView):
-    serializer_class = RestaurantSerializer
+    serializer_class = DishSerializer
     queryset = Restaurant.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    search_fields = ('rest_name', )
-    # ordering_fields = ['avg_rating']
+    search_fields = ['title']
     
     # def get_queryset(self):
     #     request = self.request
@@ -262,7 +261,7 @@ class CustomerRating(APIView):
         
         if 'stars' in request.data:
             stars = request.data['stars']
-            user_id = Token.objects.get(key=request.auth.key).user_id
+            user_id = request.user.id
             # return Response({'status': user_id}, status=status.HTTP_200_OK)
             user = User.objects.get(id=user_id)
             dish = Dish.objects.get(id=dish_id)
@@ -283,7 +282,27 @@ class CustomerRating(APIView):
                 return Response(response, status=status.HTTP_200_OK)
                  
         else:
-            response = {'message': 'You need to provide a rating'}
+            response = {'status': 'You need to provide a rating'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+# class FeaturedDish(APIView):
+#     serializer_class = 
 
+#     def get(self, request):
+
+class CategoryView(APIView):
+
+    serializer_class = CategoryFilter
+    def get(self, request):
+        
+        category = request.data.get("category")
+        serializer = self.serializer_class(CategoryFilter)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# class WishlistView(APIView):
+    
+#     def put(self, request):
+        
+#         request_email = request.data.get("email", )
+
+#         queryset = W

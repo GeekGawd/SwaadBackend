@@ -77,6 +77,7 @@ class Dish(models.Model):
     Dish_time = models.CharField(choices= Dish_time_choices, max_length=15, default=FileNotFoundError, null = True, blank=True)
     image = models.ImageField(upload_to ='media/Dish_images', null = True, blank = True )
     # models.URLField(default='https://media.istockphoto.com/photos/food-backgrounds-table-filled-with-large-variety-of-food-picture-id1155240408?k=20&m=1155240408&s=612x612&w=0&h=Zvr3TwVQ-wlfBnvGrgJCtv-_P_LUcIK301rCygnirbk=')
+    delivery_time   = models.IntegerField(default=60,blank=False)
 
     def __str__(self):
         return self.title
@@ -93,6 +94,10 @@ class Rating(models.Model):
     
     def __str__(self) -> str:
         return str(f"{self.user}-->{self.restaurant}-->{self.dish}-->{self.stars}")
+
+# class Favourites(models.Model):
+#     user = models.OneToOneField(User)
+#     dish = models.ManyToManyField(Dish)
 
 
 

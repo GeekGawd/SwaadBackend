@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.db.models import fields
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
+from django_filters import FilterSet, ChoiceFilter
 
 # class CategorySerializer(ModelSerializer):
 #     photo = SerializerMethodField()
@@ -137,3 +138,11 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ('__all__')
+        
+class CategoryFilter(FilterSet):
+
+    status = ChoiceFilter(choices=Dish.category)
+
+    class Meta:
+        model = Dish
+        fields = ('status', )
