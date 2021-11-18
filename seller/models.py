@@ -14,7 +14,8 @@ Categories = (
     ('Sweets', "Sweets"), ('Rolls', 'Rolls'), ('Kebab', 'Kebab'), ('Chaat', 'Chaat'),
     ('Paneer', 'Paneer'), ('Pizza', 'Pizza'), ('Chicken', 'Chicken'), ('Healthy', 'Healthy'),
     ('Biryani', 'Biryani'), ('Shawarma', 'Shawarma'), ('Thali', 'Thali'), ('Momos', 'Momos'),
-    ('Burger', 'Burger'), ('Dal', 'Dal'), ('Dosa', 'Dosa'), ('Chaap', 'Chaap'),
+    ('Burger', 'Burger'), ('Dal', 'Dal'), ('Dosa', 'Dosa'), ('Chaap', 'Chaap'),('Main Course', 'Main Course'),
+    ('Snacks', 'Snacks'),
 )
 
 Dish_time_choices = (
@@ -68,7 +69,7 @@ class Restaurant(models.Model):
             
 class Dish(models.Model):
     # photo = models.ImageField(upload_to = 'img/Dish_images', blank = True, null = True)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='rest')
     price = models.FloatField(validators=[MinValueValidator(0)])
     title = models.CharField(max_length=200)
     updated = models.DateTimeField(auto_now_add=True)

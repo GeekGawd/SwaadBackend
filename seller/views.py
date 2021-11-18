@@ -143,7 +143,7 @@ class SearchViewDish(generics.ListAPIView):
     serializer_class = DishSerializer
     queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    search_fields = ['title']
+    search_fields = ['title', 'category']
     
     # def get_queryset(self):
     #     request = self.request
@@ -231,7 +231,6 @@ class LoginOTPverification(APIView):
                 return Response({
                     'verified':False,
                     'status':'OTP incorrect.'
-
                 })
 
 class CustomerGetDish(APIView):
@@ -263,8 +262,7 @@ class CustomerRating(APIView):
         return Response({"ratings": ratings}, status=status.HTTP_200_OK)
 
     def post(self, request, dish_id=None):
-
-        
+ 
         if 'stars' in request.data:
             stars = request.data['stars']
             user_id = request.user.id
@@ -298,11 +296,12 @@ class CustomerRating(APIView):
 
 class CategoryView(APIView):
 
-    serializer_class = DishSerializer
+    serializer_class = CategorySerializer
     permission_classes = [AllowAny]
     def get(self, request):
         category = request.data.get("category")
-        # serializer = self.serializer_class(category)
+        if category is None:
+            return Response({"status": "Pass a category name"}, status=status.HTTP_400_BAD_REQUEST)
         query = Dish.objects.filter(category__icontains=category)
         serializer = self.serializer_class(query, many=True, context={'request':request})
         return Response(serializer.data, status=status.HTTP_200_OK)

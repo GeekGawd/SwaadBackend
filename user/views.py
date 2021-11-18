@@ -19,7 +19,6 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.conf import settings
 
 class CreateUserView(APIView):
-    """Create a new user in the system"""
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
     def post(self, request):
@@ -39,9 +38,6 @@ class CreateUserView(APIView):
         
 
 class LoginAPIView(APIView):
-    """Create a new auth token for user"""
-    # serializer_class = AuthTokenSerializer
-    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
     permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         request_email = request.data.get('email',)
@@ -57,48 +53,6 @@ class LoginAPIView(APIView):
             return Response({
                 'status':'User not validated, please goto login/otp'
             },status=status.HTTP_403_FORBIDDEN)
-
-# class LoginAPIView(APIView):
-#     serializer_class = LoginSerializer
-
-#     def post(self, request):
-#         data = request.data
-#         username = data.get('username', '')
-#         password = data.get('password', '')
-#         user = authenticate(username=username, password=password)
-
-#         if user:
-#             auth_token = jwt.encode(
-#                 {'username': user.username}, settings.JWT_SECRET_KEY, algorithm="HS256")
-
-#             serializer = UserSerializer(user)
-
-#             data = {'user': serializer.data, 'token': auth_token}
-
-#             return Response(data, status=status.HTTP_200_OK)
-
-#             # SEND RES
-#         return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-# class LoginAPIView(APIView):
-#     serializer_class = AuthTokenSerializer
-#     permission_classes = [AllowAny]
-    
-#     def post(self, request):
-
-#         request_email = request.data.get('email',)
-#         try:
-#             user1 = User.objects.get(email__iexact = request_email)
-#         except: 
-#             return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
-#         if user1.is_active:
-#             serializer = self.serializer_class(data=request.data)
-#             serializer.is_valid(raise_exception=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response({
-#                 'status':'User is not verified. Please verify your account.'
-#             },status=status.HTTP_401_UNAUTHORIZED)
 
 def login_send_otp_email(email,subject="[OTP] New Login for Swaad App", signup_otp = False):
     
@@ -143,8 +97,6 @@ class PasswordReset(APIView):
         except: 
             return Response({"status" : "No such account exists"},status = status.HTTP_400_BAD_REQUEST)
 
-        # if hasattr(user, 'auth_token'):
-        #     user.auth_token.delete()
         if user.is_active:
             send_otp_email(email = request_email,subject="[OTP] Password Change for Swaad App") 
             return Response({"status" : "OTP has been sent to your email."}, status = status.HTTP_200_OK)

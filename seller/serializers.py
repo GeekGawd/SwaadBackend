@@ -1,3 +1,4 @@
+import re
 from django.db.models.base import Model
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import *
@@ -134,15 +135,24 @@ class DishSerializer(ModelSerializer):
         model = Dish
         fields = ("id", "title", "image", "price", "veg","category")
 
+class CategorySerializer(ModelSerializer):
+    
+    def to_representation(self, instance):
+
+       data = super(CategorySerializer, self).to_representation(instance)
+
+       dish = Dish.objects.get(id=instance.id)
+       restaurant_name = dish.restaurant.rest_name
+       data['restaurant_name'] = restaurant_name
+       return data
+
+
+    class Meta:
+        model = Dish
+        fields = ("id", "title", "image", "price", "veg","category")
+
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ('__all__')
         
-class CategoryFilter(FilterSet):
-
-    Categories = ChoiceFilter(choices=Dish.category)
-
-    class Meta:
-        model = Dish
-        fields = ('Categories', )

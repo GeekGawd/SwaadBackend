@@ -30,9 +30,9 @@ class Order(models.Model):
     #     (DELIVERED, "Delivered"),
     # )
 
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE,)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,)
-    # driver = models.ForeignKey(Driver, on_delete=models.CASCADE,)
     total = models.IntegerField()
     address = models.CharField(max_length=250, null=True)
     # status = models.IntegerField(choices = STATUS_CHOICES)
@@ -48,5 +48,13 @@ class OrderDetails(models.Model):
     quantity = models.IntegerField()
     sub_total = models.IntegerField()
 
+
     def __str__(self):
         return str(self.id)
+
+class CartModel(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    dish = models.ManyToManyField(Dish)
+
+    def __str__(self):
+        return f"Cart of {self.user}"
