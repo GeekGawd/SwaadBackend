@@ -125,14 +125,14 @@ class AuthTokenSerializer(serializers.Serializer):
 class DishSerializer(ModelSerializer):
     # image = serializers.SerializerMethodField()
 
-    def get_image(self, dish):
-        request = self.context.get('request')
-        image_url = dish.image.url
-        return request.build_absolute_uri(image_url)
+    # def get_image(self, dish):
+    #     request = self.context.get('request')
+    #     image_url = dish.image.url
+    #     return request.build_absolute_uri(image_url)
 
     class Meta:
         model = Dish
-        fields = ("id", "title", "image", "price", "veg")
+        fields = ("id", "title", "image", "price", "veg","category")
 
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -141,8 +141,8 @@ class RatingSerializer(serializers.ModelSerializer):
         
 class CategoryFilter(FilterSet):
 
-    status = ChoiceFilter(choices=Dish.category)
+    Categories = ChoiceFilter(choices=Dish.category)
 
     class Meta:
         model = Dish
-        fields = ('status', )
+        fields = ('Categories', )

@@ -7,7 +7,6 @@ from core.models import User
 
 
 class Customer(models.Model):
-    """Customer object"""
     user = models.OneToOneField('core.User', on_delete=models.CASCADE, related_name='customer')
     phone = models.CharField(max_length=500, blank=True)
     address = models.CharField(max_length=500, blank=True)

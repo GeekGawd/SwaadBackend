@@ -298,11 +298,13 @@ class CustomerRating(APIView):
 
 class CategoryView(APIView):
 
-    serializer_class = CategoryFilter
+    serializer_class = DishSerializer
+    permission_classes = [AllowAny]
     def get(self, request):
-        
         category = request.data.get("category")
-        serializer = self.serializer_class(CategoryFilter)
+        # serializer = self.serializer_class(category)
+        query = Dish.objects.filter(category__icontains=category)
+        serializer = self.serializer_class(query, many=True, context={'request':request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # class WishlistView(APIView):
