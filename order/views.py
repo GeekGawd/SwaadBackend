@@ -1,3 +1,4 @@
+from typing import List
 from rest_framework import generics, serializers, status, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -22,11 +23,26 @@ class OrderView(APIView):
     def put(self, request):
             
         user_id = request.user.id
+
         try:
             customer = Customer.objects.get(user=user_id)
         except:
             return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
-        address = Customer.objects.get(user=user_id).address
+        
+        request_address = request.data.get('address', )
+        request_address_id = request.data.get('delivery_id', )
+
+        if request_address:
+            address = request_address
+        
+        elif request_address_id:
+            address = Customer.objects.get(user=user_id).address
+            
+        else:    
+            address = Customer.objects.get(user=user_id).address
+        
+        
+
         user = request.user
         # if Order.objects.filter(customer = customer):
         #     return Response({"status":"Your last order must be completed."})
@@ -45,7 +61,8 @@ class OrderView(APIView):
         if len(order_details) > 0:
 
             if Order.objects.filter(user = user).exists():
-                order = Order.objects.update(customer = customer,
+                order = Order.objects.update(
+                    customer = customer,
                     restaurant_id = request.data.get('restaurant_id',),
                     total = order_total,
                     address = address)
@@ -61,7 +78,8 @@ class OrderView(APIView):
                 return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
 
             else:
-                order = Order.objects.create(customer = customer,
+                order = Order.objects.create(user = user,
+                    customer = customer,
                     restaurant_id = request.data.get('restaurant_id',),
                     total = order_total,
                     address = address)
@@ -116,9 +134,7 @@ class CreateDeliveryDetails(APIView):
 
 class LatestOrder(APIView):
     serializer_class = OrderSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-
+    
     def get(self, request, *args, **kwargs):
         
         user_id = request.user.id
@@ -144,7 +160,7 @@ class Cart(APIView):
         
         user_id = request.user.id
         dish = Dish.objects.get(request.data.get("dish_id"),)
-        quan
+        # quan
 
         try:
             Customer.objects.get(user=user_id)

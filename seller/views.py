@@ -151,8 +151,6 @@ class SearchViewDish(generics.ListAPIView):
 class RestaurantAddDish(APIView):
 
     serializer_class = DishSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         # data = request.data
@@ -249,8 +247,6 @@ class CustomerGetDish(APIView):
 class CustomerRating(APIView):
 
     serializer_class = RatingSerializer
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         ratings = RatingSerializer(

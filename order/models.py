@@ -7,12 +7,12 @@ from core.models import User
 
 
 class Customer(models.Model):
-    user = models.OneToOneField('core.User', on_delete=models.CASCADE, related_name='customer')
+    user = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='customer', null=True)
     phone = models.CharField(max_length=500, blank=True)
     address = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
-        return self.user.get_username()
+        return f"{self.user.get_username()} --> {self.address}"
     
     def get_name(self):
         return self.user.name
