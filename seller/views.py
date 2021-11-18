@@ -133,9 +133,15 @@ class CustomerGetRestaurants(APIView):
 
         return Response(restaurants, status=status.HTTP_200_OK)
 
-class SearchView(generics.ListAPIView):
-    serializer_class = DishSerializer
+class SearchViewRestaurant(generics.ListAPIView):
+    serializer_class = RestaurantSerializer
     queryset = Restaurant.objects.all()
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    search_fields = ['rest_name']
+
+class SearchViewDish(generics.ListAPIView):
+    serializer_class = DishSerializer
+    queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     search_fields = ['title']
     
