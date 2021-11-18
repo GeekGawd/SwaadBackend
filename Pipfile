@@ -16,6 +16,8 @@ djangorestframework-simplejwt = "*"
 faker = "*"
 channels = "*"
 pyjwt = "*"
+cloudinary = "*"
+django-cloudinary-storage = "*"
 
 [dev-packages]
 
