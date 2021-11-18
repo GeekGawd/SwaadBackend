@@ -41,7 +41,8 @@ class Restaurant(models.Model):
     rest_name = models.CharField(max_length=200)
     phone = models.CharField(max_length=500)
     address = models.CharField(max_length=500)
-    image = models.URLField(default='https://media.istockphoto.com/photos/modern-restaurant-interior-design-picture-id1211547141?k=20&m=1211547141&s=612x612&w=0&h=KiZX3NBZVCK4MlSh4BJ8hZNSJcTIMbNSSV2yusw2NmM=')
+    image = models.ImageField(upload_to = 'media/Rest_images', null = True, blank = True)
+    # models.URLField(default='https://media.istockphoto.com/photos/modern-restaurant-interior-design-picture-id1211547141?k=20&m=1211547141&s=612x612&w=0&h=KiZX3NBZVCK4MlSh4BJ8hZNSJcTIMbNSSV2yusw2NmM=')
    
 
     # objects = RestaurantManager()
@@ -66,7 +67,7 @@ class Restaurant(models.Model):
             
             
 class Dish(models.Model):
-    photo = models.ImageField(upload_to = 'img/Dish_images', blank = True, null = True)
+    # photo = models.ImageField(upload_to = 'img/Dish_images', blank = True, null = True)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     price = models.FloatField(validators=[MinValueValidator(0)])
     title = models.CharField(max_length=200)
@@ -74,7 +75,8 @@ class Dish(models.Model):
     veg = models.BooleanField(default=True)
     category = models.CharField(choices= Categories, max_length=15)
     Dish_time = models.CharField(choices= Dish_time_choices, max_length=15, default=FileNotFoundError, null = True, blank=True)
-    image = models.URLField(default='https://media.istockphoto.com/photos/food-backgrounds-table-filled-with-large-variety-of-food-picture-id1155240408?k=20&m=1155240408&s=612x612&w=0&h=Zvr3TwVQ-wlfBnvGrgJCtv-_P_LUcIK301rCygnirbk=')
+    image = models.ImageField(upload_to ='media/Dish_images', null = True, blank = True )
+    # models.URLField(default='https://media.istockphoto.com/photos/food-backgrounds-table-filled-with-large-variety-of-food-picture-id1155240408?k=20&m=1155240408&s=612x612&w=0&h=Zvr3TwVQ-wlfBnvGrgJCtv-_P_LUcIK301rCygnirbk=')
 
     def __str__(self):
         return self.title
