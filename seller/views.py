@@ -142,6 +142,10 @@ class SearchViewDish(ListAPIView):
     queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     search_fields = ['title']
+
+    class Meta:
+        model = Dish
+        fields = ("id", "title", "image", "price", "veg","category")
     
     # def get_queryset(self):
     #     request = self.request
