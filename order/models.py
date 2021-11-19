@@ -45,7 +45,7 @@ class Order(models.Model):
 
 
 class OrderDetails(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_details')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_details', null=True)
     # cart_details = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cart_details')
     dish = models.ForeignKey(Dish, on_delete=models.CASCADE,)
     quantity = models.IntegerField()
@@ -57,15 +57,14 @@ class OrderDetails(models.Model):
 
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE,)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,)
-    total = models.IntegerField()
-    address = models.CharField(max_length=250, null=True)
-    created_at = models.DateTimeField(default = timezone.now)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    dish = models.ManyToManyField(Dish)
 
     def __str__(self):
         return self.user.email
+    
+    def save(self):
+        pass
 
 # class CartDetail(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)

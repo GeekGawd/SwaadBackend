@@ -259,20 +259,19 @@ class OrderView(APIView):
         return Response(serializer.data)
 
     def put(self, request, format = None):
+            
             user = request.user
-            try:
-                order = Order.objects.get(user=user)
-                order.delete()
-                order = Order.objects.create(user = user)
-            except:
-                order = Order.objects.create(user = user)
-                    
-            cart = Cart.objects.get(cart_user = user)
-            if cart is not None:
-                order_details = OrderDetails.objects.filter(cart_user = cart)
-                for o in order_details:
-                    o.orders = order
-                    o.cart_user = None
-                    o.save()
-                return Response({'message': 'Successfully Ordered'}, status= status.HTTP_202_ACCEPTED)
-            return Response({},status = status.HTTP_403_FORBIDDEN)
+
+            dish = Dish.objects.get(id = request.data.get('dish_id',))
+            cart = Cart.objects.get_or_create(user = user, dish = dish)
+
+            if cart.exists():
+                order = cart[0]
+                # order.items.add(order_item)
+                return Response(data={'details':"item added to cart"},status=status.HTTP_201_CREATED)
+            else:
+                ordered_date = timezone.now()
+                order       = Cart.objects.create(user=request.user, ordered_date=ordered_date)
+                # order.items.add(order_item)
+                return Response(data={"details":"item added to your cart"})
+            
