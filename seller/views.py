@@ -143,7 +143,7 @@ class SearchViewDish(generics.ListAPIView):
     serializer_class = DishSerializer
     queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    search_fields = ['title', 'category']
+    search_fields = ['title']
     
     # def get_queryset(self):
     #     request = self.request
@@ -265,7 +265,6 @@ class CustomerRating(APIView):
             # return Response({'status': user_id}, status=status.HTTP_200_OK)
             user = User.objects.get(id=user_id)
             dish = Dish.objects.get(id=dish_id)
-            print("dish")
             restaurant = dish.restaurant
             try: 
                 rating = Rating.objects.get(user=user, dish=dish.id)

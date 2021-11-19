@@ -37,6 +37,14 @@ class OrderDetailsSerializer(ModelSerializer):
         model = OrderDetails
         fields = ("id", "dish", "quantity", "sub_total")
 
+    def to_representation(self, instance):
+        data = super(OrderDetailsSerializer, self).to_representation(instance)
+        dish_id = instance.id
+        dish_name = Dish.objects.get(id = dish_id).title
+        data['dish_name'] = dish_name
+
+        return data
+         
 class OrderSerializer(ModelSerializer):
     customer = OrderCustomerSerializer()
     restaurant = OrderRestaurantSerializer()

@@ -50,11 +50,14 @@ class Command(BaseCommand):
             name = fake.name()
             is_active = True
 
-            User.objects.create(
+            user = User.objects.create(
                 email = mail,
                 name = name,
                 is_active = is_active
             )
+
+            user.set_password('Test@1234')
+            user.save()
 
         for _ in range(1, 301):
             user_id = _

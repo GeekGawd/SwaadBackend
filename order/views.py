@@ -1,4 +1,5 @@
 from typing import List
+from django.db.models import deletion
 from rest_framework import generics, serializers, status, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -17,40 +18,27 @@ from django.utils import timezone
 from rest_framework import status
 
 # Create your views here.
-class OrderView(APIView):
+class CartView(APIView):
 
     permission_classes = [AllowAny]
-    def put(self, request):
-            
+
+    def post(self, request):
+
         user_id = request.user.id
+        user = request.user
+        request_address_id = request.data.get('delivery_id', )
+        request_address = request.data.get('address', )
 
         try:
-            customer = Customer.objects.get(user=user_id)
+            customer = Customer.objects.filter(user=user_id)
+            if len(customer)>0 and request_address_id:
+               customer = customer[request_address_id-1]
+            else:
+               customer = customer[0]
         except:
             return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        request_address = request.data.get('address', )
-        request_address_id = request.data.get('delivery_id', )
-
-        if request_address:
-            address = request_address
-        
-        elif request_address_id:
-            address = Customer.objects.get(user=user_id).address
-            
-        else:    
-            address = Customer.objects.get(user=user_id).address
-        
-        
-
-        user = request.user
-        # if Order.objects.filter(customer = customer):
-        #     return Response({"status":"Your last order must be completed."})
-
-        # try:
-        #     request.data.get("address",)
-        # except:
-        #     return Response({"status": "Address is required."})
+                 
+        address = Customer.objects.filter(user=user_id)[0].address
 
         order_details = request.data.get("order_details",)
 
@@ -94,6 +82,94 @@ class OrderView(APIView):
 
                 return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
 
+    def put(self, request):
+            
+        user_id = request.user.id
+        user = request.user
+        request_address_id = request.data.get('delivery_id', )
+        request_address = request.data.get('address', )
+
+        try:
+            customer = Customer.objects.filter(user=user_id)
+            if len(customer)>0 and request_address_id:
+               customer = customer[request_address_id-1]
+            else:
+               customer = customer[0]
+        except:
+            return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        if request_address:
+            address = request_address
+        
+        elif request_address_id:
+            address = Customer.objects.filter(user=user_id)[request_address_id-1].address
+            
+        else:    
+            address = Customer.objects.filter(user=user_id)[0].address
+
+        
+        
+        
+        
+        # if Order.objects.filter(customer = customer):
+        #     return Response({"status":"Your last order must be completed."})
+
+        # try:
+        #     request.data.get("address",)
+        # except:
+        #     return Response({"status": "Address is required."})
+
+        order_details = request.data.get("order_details",)
+
+        order_total = 0
+        for dish in order_details:
+            order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+
+        if len(order_details) > 0:
+
+            if Order.objects.get(user = user):
+        
+                order1 = Order.objects.get(
+                    customer = customer,
+                    restaurant_id = request.data.get('restaurant_id',))
+                
+                order1.customer = customer
+                order1.total = order_total
+                order1.address = address
+                order1.save()
+
+                
+                for dish in order_details:
+                    order_details1 = OrderDetails.objects.get(
+                        order = order1.id,
+                        dish_id = dish["dish_id"],
+                    )
+                    order_details1.order = order1
+                    order_details1.dish_id = dish['dish_id']
+                    order_details1.quantity = dish['quantity']
+                    order_details1.sub_total = Dish.objects.get(id = dish['dish_id']).price * dish['quantity']
+                    order_details1.save()
+                return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
+
+            else:
+                pass
+                # order = Order.objects.create(user = user,
+                #     customer = customer,
+                #     restaurant_id = request.data.get('restaurant_id',),
+                #     total = order_total,
+                #     address = address)
+
+                # for dish in order_details:
+                #     OrderDetails.objects.create(
+                #         order = order,
+                #         dish_id = dish["dish_id"],
+                #         quantity = dish["quantity"],
+                #         sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+                #     )
+
+                # return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
+
     # def put(self, request, *args, **kwargs):
         
     #     order_details = request.data.get("order_details",)
@@ -103,11 +179,18 @@ class OrderView(APIView):
     #         order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
 
          
-        
 
 
-class CreateDeliveryDetails(APIView):
+class DeliveryDetails(APIView):
     serializer_class = CustomerSerializer
+
+    def get(self, request):
+        
+        user = request.user
+        print(Customer.objects.filter(user=user))
+        serializer = self.serializer_class(Customer.objects.filter(user=user), many=True).data
+        return Response(serializer, status=status.HTTP_200_OK)
+
 
     def post(self, request, *args, **kwargs):
 
@@ -132,14 +215,30 @@ class CreateDeliveryDetails(APIView):
             return Response({'status': 'Customer Delivery Details added successfully'})
         return Response({'status': 'Failed to Create Customer Details.'})
 
+class DeleteDeliveryDetails(APIView):
+
+    def delete(self, request, delivery_id):
+        
+        user = request.user
+        try:
+            delivery = Customer.objects.filter(user = user)
+        except:
+            return Response({"status": "No Delivery Details"}, status=status.HTTP_400_BAD_REQUEST)
+    
+        address = Customer.objects.filter(user = user)[delivery_id-1].address
+        print(address)
+        delete_delivery = Customer.objects.get(user = user, address=address)
+        delete_delivery.delete()
+        return Response({'status': 'Delivery details removed.'}, status=status.HTTP_204_NO_CONTENT)
+
 class LatestOrder(APIView):
     serializer_class = OrderSerializer
-    
+
     def get(self, request, *args, **kwargs):
         
-        user_id = request.user.id
-        customer = Customer.objects.get(user=user_id)
-        order = OrderSerializer(Order.objects.filter(customer = customer).last()).data
+        user = request.user
+        # customer = Customer.objects.filter(user=user)
+        order = OrderSerializer(Order.objects.filter(user = user).last()).data
 
         return Response({"order": order})
 

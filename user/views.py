@@ -130,7 +130,9 @@ class PasswordResetOTPConfirm(APIView):
             if (request_email != email):
                 return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_401_UNAUTHORIZED)
             
-            return Response({"status": "OTP verified You can now change your password"}, status = status.HTTP_200_OK)
+            serializer = AuthTokenSerializer(data=request.data, context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
@@ -178,9 +180,13 @@ class SignUpOTPVerification(APIView):
                 OTP.objects.filter(otp_email__iexact = request_email).delete()
                 user.is_active = True
                 user.save()
-                return Response({
-                    'status':'OTP verified, proceed to login.'
-                }, status=status.HTTP_200_OK)
+
+                serializer = AuthTokenSerializer(data=request.data, context={'request': request})
+                serializer.is_valid(raise_exception=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+                # return Response({
+                #     'status':'OTP verified, proceed to login.'
+                # }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'status':'OTP incorrect.'
@@ -236,6 +242,7 @@ class ChangePassword(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
             user.set_password(serializer.data.get("new_password"))
             user.save()
+            
             return Response({'status': "New Password Set"},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 

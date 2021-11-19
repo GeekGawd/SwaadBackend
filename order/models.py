@@ -35,9 +35,9 @@ class Order(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,)
     total = models.IntegerField()
     address = models.CharField(max_length=250, null=True)
+    # is_paid = models.BooleanField(default=False)
     # status = models.IntegerField(choices = STATUS_CHOICES)
     created_at = models.DateTimeField(default = timezone.now)
-    # picked_at = models.DateTimeField(blank = True, null = True)
 
     def __str__(self):
         return str(self.id)
