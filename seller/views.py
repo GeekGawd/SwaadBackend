@@ -7,7 +7,7 @@ from rest_framework import status, viewsets
 from core.models import User
 from .models import *
 from .serializers import *
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.generics import ListAPIView
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
@@ -120,16 +120,42 @@ class LoginAPIView(APIView):
                 'status':'User is not verified. Please verify your account.'
             },status=status.HTTP_401_UNAUTHORIZED)
 
-class CustomerGetRestaurants(APIView, PageNumberPagination):
-    
-    def get(self, request, *args, **kwargs):
-        restaurants = RestaurantSerializer(
-            Restaurant.objects.all().order_by("?"),
-            many = True,
-            context = {"request": request}
-        ).data
+class BasicPagination(PageNumberPagination):
+    page_size_query_param = 'limit'
 
-        return Response(restaurants, status=status.HTTP_200_OK)
+class CustomerGetRestaurants(APIView, LimitOffsetPagination):
+    pagination_class = BasicPagination
+    serializer_class = RestaurantSerializer
+    @property
+    def paginator(self):
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        else:
+            pass
+        return self._paginator
+    def paginate_queryset(self, queryset):
+        
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset,
+                   self.request, view=self)
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+    def get(self, request, *args, **kwargs):
+        instance = Restaurant.objects.all().order_by("?")
+        page = self.paginate_queryset(instance)
+        print(type(page))
+        if page is not None:
+            serializer = self.get_paginated_response(self.serializer_class(page,
+            many=True).data)
+        else:
+            serializer = self.serializer_class(instance, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class SearchViewRestaurant(ListAPIView):
     serializer_class = RestaurantSerializer
