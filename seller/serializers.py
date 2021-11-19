@@ -129,7 +129,7 @@ class DishSerializer(ModelSerializer):
     def get_image(self, dish):
         request = self.context.get('request')
         image_url = dish.image.url
-        return request.build_absolute_url(image_url)
+        return request.build_absolute_uri(image_url)
 
     class Meta:
         model = Dish
