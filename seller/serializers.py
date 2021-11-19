@@ -155,6 +155,7 @@ class CategorySerializer(ModelSerializer):
        dish = Dish.objects.get(id=instance.id)
        restaurant_name = dish.restaurant.rest_name
        data['restaurant_name'] = restaurant_name
+       data['restaurant_id'] = dish.restaurant.id
        return data
 
 

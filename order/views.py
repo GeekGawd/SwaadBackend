@@ -3,7 +3,7 @@ from django.db.models import deletion
 from rest_framework import generics, serializers, status, authentication, permissions
 from core.models import *
 from order.models import *
-from order.serializers import CustomerSerializer, OrderSerializer
+from order.serializers import CustomerSerializer, OrderDetailsSerializer, OrderSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
 from rest_framework.permissions import AllowAny
@@ -243,70 +243,36 @@ class GetAllCustomerOrder(APIView):
 
         return Response({"order": order})
 
-# class CartAdd(APIView):
+class OrderView(APIView):
 
-#     def post(self, request, *args, **kwargs):
+    def get(self, request, format=None):
 
-#         user_id = request.user.id
-#         user = request.user
-#         request_address_id = request.data.get('delivery_id', )
-#         request_address = request.data.get('address', )
-#         # print(Cart.objects.get(user = user))
-#         try:
-#             customer = Customer.objects.filter(user=user_id)
-#             if len(customer)>0 and request_address_id:
-#                customer = customer[request_address_id-1]
-#             else:
-#                customer = customer[0]
-#         except:
-#             return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.get(id = request.user.id)
 
-        
-#         if request_address:
-#             address = request_address
-        
-#         elif request_address_id:
-#             address = Customer.objects.filter(user=user_id)[request_address_id-1].address
-            
-#         else:    
-#             address = Customer.objects.filter(user=user_id)[0].address
-    
+        if Order.objects.filter(user = user).exists():
+            order = Order.objects.get(user = user)
+        else:
+            order = Order.objects.create(user = user)
 
-#         order_details = request.data.get("order_details",)
+        dish = OrderDetails.objects.filter(order = order)
+        serializer = OrderDetailsSerializer(dish, many = True)
+        return Response(serializer.data)
 
-#         order_total = 0
-#         for dish in order_details:
-#             order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-
-        
-
-#         if len(order_details) > 0:
-#             try: 
-#                 Cart.objects.filter(user = user_id).exists()
-#                 order1 = Cart.objects.get(user = user)
-#                 order1.customer = customer
-#                 order1.total = order_total
-#                 order1.address = address
-#                 order1.save()
-
-#                 for dish in order_details:
-#                     order_details1 = OrderDetails.objects.get(
-#                         order = order1.id,
-#                         dish_id = dish["dish_id"],
-#                     )
-#                     order_details1.cart = order1
-#                     order_details1.dish_id = dish['dish_id']
-#                     order_details1.quantity = dish['quantity']
-#                     order_details1.sub_total = Dish.objects.get(id = dish['dish_id']).price * dish['quantity']
-#                     order_details1.save()
-#                 return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
-#             except:
-#                 order1 = Cart.objects.get(id=1)
-#                 for dish in order_details:
-#                     order_details = OrderDetails.objects.create(
-#                         cart_details = order1,
-#                         dish_id = dish["dish_id"],
-#                         quantity = dish["quantity"],
-#                         sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-#                     )
-#             return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
+    def put(self, request, format = None):
+            user = request.user
+            try:
+                order = Order.objects.get(user=user)
+                order.delete()
+                order = Order.objects.create(user = user)
+            except:
+                order = Order.objects.create(user = user)
+                    
+            cart = Cart.objects.get(cart_user = user)
+            if cart is not None:
+                order_details = OrderDetails.objects.filter(cart_user = cart)
+                for o in order_details:
+                    o.orders = order
+                    o.cart_user = None
+                    o.save()
+                return Response({'message': 'Successfully Ordered'}, status= status.HTTP_202_ACCEPTED)
+            return Response({},status = status.HTTP_403_FORBIDDEN)

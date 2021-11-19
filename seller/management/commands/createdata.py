@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 from django.core.mail import mail_managers
 from django.core.management.base import BaseCommand
 from faker import Faker
@@ -62,12 +62,14 @@ class Command(BaseCommand):
             rest_name = fake.company()
             phone = fake.phone_number()
             address = fake.address()
-
+            pic = choice([i for i in range(1,11)])
+            product_img = f'Dish_images/p{pic}.jpg'
             Restaurant.objects.create(
                 user = user,
                 rest_name = rest_name,
                 phone = phone,
-                address = address
+                address = address,
+                image = product_img
             )
         
         for _ in range(1, 150):
@@ -80,11 +82,14 @@ class Command(BaseCommand):
             title = fake.dish_category()
             category = fake.dish_category()
             dish_time = fake.dish_meal_time()
+            pic = choice([i for i in range(1,11)])
+            product_img = f'Dish_images/p{pic}.jpg'
 
             Dish.objects.create(
                 restaurant = rest,
                 price = price,
                 title = title,
                 category = category,
-                Dish_time = dish_time
+                Dish_time = dish_time,
+                image = product_img
             )

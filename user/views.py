@@ -181,12 +181,10 @@ class SignUpOTPVerification(APIView):
                 user.is_active = True
                 user.save()
 
-                serializer = AuthTokenSerializer(data=request.data, context={'request': request})
-                serializer.is_valid(raise_exception=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-                # return Response({
-                #     'status':'OTP verified, proceed to login.'
-                # }, status=status.HTTP_200_OK)
+                # return Response(user.tokens(), status=status.HTTP_200_OK)
+                return Response({
+                    'status':'OTP verified, proceed to login.'
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'status':'OTP incorrect.'
