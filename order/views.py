@@ -243,6 +243,7 @@ class GetAllCustomerOrder(APIView):
         order = OrderSerializer(Order.objects.filter(user = user).last()).data
 
         return Response({"order": order})
+
 class CartAdd(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -310,4 +311,3 @@ class CartAdd(APIView):
                         sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
                     )
             return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
-            
