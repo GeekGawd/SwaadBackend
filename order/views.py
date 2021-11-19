@@ -262,6 +262,9 @@ class OrderView(APIView):
             
             user = request.user
             dish = Dish.objects.get(id = request.data.get('dish_id',))
-            cart = Cart.objects.get_or_create(user = user, dish = dish)
+            cart = Cart.objects.get_or_create(user = user)
+
+            # Cart.objects. 
+            
             
             return Response({"status": "Dish added successfully."}, status=status.HTTP_200_OK)

@@ -58,13 +58,10 @@ class OrderDetails(models.Model):
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    dish = models.ManyToManyField(Dish)
+    dish = models.ForeignKey(Dish, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.email
-    
-    def save(self):
-        pass
 
 # class CartDetail(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)

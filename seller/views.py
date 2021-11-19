@@ -303,11 +303,3 @@ class CategoryView(APIView):
         query = Dish.objects.filter(category__icontains=category)
         serializer = self.serializer_class(query, many=True, context={'request':request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-# class WishlistView(APIView):
-    
-#     def put(self, request):
-        
-#         request_email = request.data.get("email", )
-
-#         queryset = W

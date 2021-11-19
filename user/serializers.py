@@ -14,13 +14,11 @@ from core.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer for the users object"""
 
     class Meta:
-        model = get_user_model()
+        model = User
         fields = ('email', 'password', 'name')
-        extra_kwargs = {
-            'password': {'write_only': True, 'min_length': 5,'required': True, 'error_messages': {"required": "Change this"}},
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 5,'required': True, 'error_messages': {"required": "Password needed"}},
             'email': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
             'name': {'required': True,'error_messages': {"required": "Name field may not be blank."}},
             }
@@ -42,8 +40,11 @@ class UserSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
-        """Create a new user with encrypted password and return it"""
-        return get_user_model().objects.create_user(**validated_data)
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
     
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
