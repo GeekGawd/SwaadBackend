@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.fields.related import OneToOneField
 from django.utils import timezone, tree
 from rest_framework import serializers
 from seller.models import Restaurant, Dish
@@ -42,8 +43,15 @@ class Order(models.Model):
     def __str__(self):
         return str(self.id)
 
+class Cart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"self.user.id"
+
 class OrderDetails(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_details')
+    cart_details = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cart_details')
     dish = models.ForeignKey(Dish, on_delete=models.CASCADE,)
     quantity = models.IntegerField()
     sub_total = models.IntegerField()
@@ -52,9 +60,3 @@ class OrderDetails(models.Model):
     def __str__(self):
         return str(self.id)
 
-class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    total = models.IntegerField(blank=True, null=True)
-
-    def __str__(self):
-        return self.cart_user.name

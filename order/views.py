@@ -1,10 +1,6 @@
 from typing import List
 from django.db.models import deletion
 from rest_framework import generics, serializers, status, authentication, permissions
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.settings import api_settings
-from rest_framework.utils.serializer_helpers import ReturnDict
 from core.models import *
 from order.models import *
 from order.serializers import CustomerSerializer, OrderSerializer
@@ -38,7 +34,7 @@ class CartView(APIView):
         except:
             return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
                  
-        address = Customer.objects.filter(user=user_id)[0].address
+        address = customer.address  
 
         order_details = request.data.get("order_details",)
 
@@ -108,17 +104,6 @@ class CartView(APIView):
         else:    
             address = Customer.objects.filter(user=user_id)[0].address
 
-        
-        
-        
-        
-        # if Order.objects.filter(customer = customer):
-        #     return Response({"status":"Your last order must be completed."})
-
-        # try:
-        #     request.data.get("address",)
-        # except:
-        #     return Response({"status": "Address is required."})
 
         order_details = request.data.get("order_details",)
 
@@ -128,7 +113,7 @@ class CartView(APIView):
 
         if len(order_details) > 0:
 
-            if Order.objects.get(user = user):
+            if Order.objects.filter(user = user).exists():  
         
                 order1 = Order.objects.get(
                     customer = customer,
@@ -153,22 +138,21 @@ class CartView(APIView):
                 return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
 
             else:
-                pass
-                # order = Order.objects.create(user = user,
-                #     customer = customer,
-                #     restaurant_id = request.data.get('restaurant_id',),
-                #     total = order_total,
-                #     address = address)
+                order = Order.objects.create(user = user,
+                    customer = customer,
+                    restaurant_id = request.data.get('restaurant_id',),
+                    total = order_total,
+                    address = address)
 
-                # for dish in order_details:
-                #     OrderDetails.objects.create(
-                #         order = order,
-                #         dish_id = dish["dish_id"],
-                #         quantity = dish["quantity"],
-                #         sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-                #     )
+                for dish in order_details:
+                    OrderDetails.objects.create(
+                        order = order,
+                        dish_id = dish["dish_id"],
+                        quantity = dish["quantity"],
+                        sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+                    )
 
-                # return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
+                return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
 
     
 
@@ -181,16 +165,14 @@ class DeleteCartView(APIView):
         # order = Order.objects.get(id = order_id)
         # return Response({'status': "You don't have anything in cart."})
         try:
-            order = Order.objects.latest('id')
+            cart = Cart.objects.latest('id')
         except:
             return Response({"status": "Current cart deleted."})
-        order.delete()
+        cart.delete()
 
         return Response({'status': 'Product removed from Cart'}, status=status.HTTP_204_NO_CONTENT)
 
          
-
-
 class DeliveryDetails(APIView):
     serializer_class = CustomerSerializer
 
@@ -254,24 +236,78 @@ class LatestOrder(APIView):
 
 class GetAllCustomerOrder(APIView):
     serializer_class = OrderSerializer
-
     def get(self, request, *args, **kwargs):
         
-        user_id = request.user.id
-        customer = Customer.objects.get(user=user_id)
-        order = OrderSerializer(Order.objects.filter(customer = customer)).data
+        user = request.user
+        # customer = Customer.objects.filter(user=user)
+        order = OrderSerializer(Order.objects.filter(user = user).last()).data
 
         return Response({"order": order})
+class CartAdd(APIView):
 
-class Cart(APIView):
+    def post(self, request, *args, **kwargs):
 
-    def put(self, request, *args, **kwargs):
-        
         user_id = request.user.id
-        dish = Dish.objects.get(request.data.get("dish_id"),)
-        # quan
-
+        user = request.user
+        request_address_id = request.data.get('delivery_id', )
+        request_address = request.data.get('address', )
+        # print(Cart.objects.get(user = user))
         try:
-            Customer.objects.get(user=user_id)
+            customer = Customer.objects.filter(user=user_id)
+            if len(customer)>0 and request_address_id:
+               customer = customer[request_address_id-1]
+            else:
+               customer = customer[0]
         except:
-            return Response({"status": "Add your address and phone."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        if request_address:
+            address = request_address
+        
+        elif request_address_id:
+            address = Customer.objects.filter(user=user_id)[request_address_id-1].address
+            
+        else:    
+            address = Customer.objects.filter(user=user_id)[0].address
+    
+
+        order_details = request.data.get("order_details",)
+
+        order_total = 0
+        for dish in order_details:
+            order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+
+        
+
+        if len(order_details) > 0:
+            try: 
+                Cart.objects.filter(user = user_id).exists()
+                order1 = Cart.objects.get(user = user)
+                order1.customer = customer
+                order1.total = order_total
+                order1.address = address
+                order1.save()
+
+                for dish in order_details:
+                    order_details1 = OrderDetails.objects.get(
+                        order = order1.id,
+                        dish_id = dish["dish_id"],
+                    )
+                    order_details1.cart = order1
+                    order_details1.dish_id = dish['dish_id']
+                    order_details1.quantity = dish['quantity']
+                    order_details1.sub_total = Dish.objects.get(id = dish['dish_id']).price * dish['quantity']
+                    order_details1.save()
+                return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
+            except:
+                order1 = Cart.objects.get(id=1)
+                for dish in order_details:
+                    order_details = OrderDetails.objects.create(
+                        cart_details = order1,
+                        dish_id = dish["dish_id"],
+                        quantity = dish["quantity"],
+                        sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+                    )
+            return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
+            

@@ -7,10 +7,8 @@ from rest_framework import status, viewsets
 from core.models import User
 from .models import *
 from .serializers import *
-from rest_framework import generics, status, authentication, permissions
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.settings import api_settings
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListAPIView
 from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
 from django.core.mail import send_mail, EmailMessage
@@ -122,7 +120,7 @@ class LoginAPIView(APIView):
                 'status':'User is not verified. Please verify your account.'
             },status=status.HTTP_401_UNAUTHORIZED)
 
-class CustomerGetRestaurants(APIView):
+class CustomerGetRestaurants(APIView, PageNumberPagination):
     
     def get(self, request, *args, **kwargs):
         restaurants = RestaurantSerializer(
@@ -133,13 +131,13 @@ class CustomerGetRestaurants(APIView):
 
         return Response(restaurants, status=status.HTTP_200_OK)
 
-class SearchViewRestaurant(generics.ListAPIView):
+class SearchViewRestaurant(ListAPIView):
     serializer_class = RestaurantSerializer
     queryset = Restaurant.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     search_fields = ['rest_name']
 
-class SearchViewDish(generics.ListAPIView):
+class SearchViewDish(ListAPIView):
     serializer_class = DishSerializer
     queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
@@ -249,8 +247,9 @@ class CustomerRating(APIView):
     serializer_class = RatingSerializer
 
     def get(self, request):
+        user = print(request.user.id)
         ratings = RatingSerializer(
-            Rating.objects.all().order_by('id'),
+            Rating.objects.get(user = user.id).order_by('id'),
             many = True,
             context = {"request": request}
         ).data

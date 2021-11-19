@@ -140,6 +140,7 @@ class DishSerializer(ModelSerializer):
         dish = instance
         restaurant_name = dish.restaurant.rest_name
         data['restaurant_name'] = restaurant_name
+        data['restaurant_id'] = dish.restaurant.id
         # dish_id = instance.id
         # dish_name = Dish.objects.get(id = dish_id).title
         # data['dish_name'] = dish_name

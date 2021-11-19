@@ -60,17 +60,17 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_new_password(self, password):
         if not re.findall('\d', password):
             raise ValidationError(
-                _("The password must contain at least 1 digit, 0-9."),
+                ("The password must contain at least 1 digit, 0-9."),
                 code='password_no_number',
             )
         if not re.findall('[A-Z]', password):
             raise ValidationError(
-                _("The password must contain at least 1 uppercase letter, A-Z."),
+                ("The password must contain at least 1 uppercase letter, A-Z."),
                 code='password_no_upper',
             )
         if not re.findall('[a-z]', password):
             raise ValidationError(
-                _("The password must contain at least 1 lowercase letter, a-z."),
+                ("The password must contain at least 1 lowercase letter, a-z."),
                 code='password_no_lower',
             )
 
@@ -93,7 +93,6 @@ class AuthTokenSerializer(serializers.ModelSerializer):
         return data
 
     def validate(self, attrs):
-        """Validate and authenticate the user"""
         email = attrs.get('email')
         password = attrs.get('password')
 
