@@ -170,13 +170,23 @@ class CartView(APIView):
 
                 # return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
 
-    # def put(self, request, *args, **kwargs):
-        
-    #     order_details = request.data.get("order_details",)
+    
 
-    #     order_total = 0
-    #     for dish in order_details:
-    #         order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+class DeleteCartView(APIView):
+
+    def delete(self, request):
+
+        order_id = request.data.get("order_id")
+        user = request.user
+        # order = Order.objects.get(id = order_id)
+        # return Response({'status': "You don't have anything in cart."})
+        try:
+            order = Order.objects.latest('id')
+        except:
+            return Response({"status": "Current cart deleted."})
+        order.delete()
+
+        return Response({'status': 'Product removed from Cart'}, status=status.HTTP_204_NO_CONTENT)
 
          
 

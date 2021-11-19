@@ -135,6 +135,16 @@ class DishSerializer(ModelSerializer):
         model = Dish
         fields = ("id", "title", "image", "price", "veg","category")
 
+    def to_representation(self, instance):
+        data = super(DishSerializer, self).to_representation(instance)
+        dish = instance
+        restaurant_name = dish.restaurant.rest_name
+        data['restaurant_name'] = restaurant_name
+        # dish_id = instance.id
+        # dish_name = Dish.objects.get(id = dish_id).title
+        # data['dish_name'] = dish_name
+        return data
+
 class CategorySerializer(ModelSerializer):
     
     def to_representation(self, instance):

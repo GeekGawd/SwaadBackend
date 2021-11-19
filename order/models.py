@@ -52,9 +52,9 @@ class OrderDetails(models.Model):
     def __str__(self):
         return str(self.id)
 
-class CartModel(models.Model):
+class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    dish = models.ManyToManyField(Dish)
+    total = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return f"Cart of {self.user}"
+        return self.cart_user.name
