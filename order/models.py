@@ -43,15 +43,19 @@ class Order(models.Model):
     def __str__(self):
         return str(self.id)
 
-class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+# class Cart(models.Model):
+#     user        = models.ForeignKey(User, on_delete=models.CASCADE)
+#     order_details       = models.ManyToManyField(OrderDetails)
+#     ordered_date= models.DateTimeField(blank=True,null=True)
+#     start_date  = models.DateTimeField(auto_now_add=True,blank=True,null=True)
+#     ordered     = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"self.user.id"
+#     def __str__(self):
+#         return self.user.email
 
 class OrderDetails(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_details')
-    cart_details = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cart_details')
+    # cart_details = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cart_details')
     dish = models.ForeignKey(Dish, on_delete=models.CASCADE,)
     quantity = models.IntegerField()
     sub_total = models.IntegerField()
