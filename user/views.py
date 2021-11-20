@@ -21,6 +21,7 @@ from django.conf import settings
 class CreateUserView(APIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+    
     def post(self, request):
         name = request.data.get('name',)
         request.data['name'] = name.strip().title()

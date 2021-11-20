@@ -22,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'required': True,'error_messages': {"required": "Email field may not be blank."}},
             'name': {'required': True,'error_messages': {"required": "Name field may not be blank."}},
             }
+
     def validate_password(self, password):
         if not re.findall('\d', password):
             raise ValidationError(
@@ -38,6 +39,8 @@ class UserSerializer(serializers.ModelSerializer):
                 _("The password must contain at least 1 lowercase letter, a-z."),
                 code='password_no_lower',
             )
+        
+        return password
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -46,14 +49,14 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
     
-    def update(self, instance, validated_data):
-        password = validated_data.pop('password', None)
-        user = super().update(instance, validated_data)
+    # def update(self, instance, validated_data):
+    #     password = validated_data.pop('password', None)
+    #     user = super().update(instance, validated_data)
 
-        if password:
-            user.set_password(validated_data['password'])
-            user.save()
-        return user
+    #     if password:
+    #         user.set_password(validated_data['password'])
+    #         user.save()
+    #     return user
 
 class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
