@@ -84,7 +84,7 @@ class Command(BaseCommand):
             category = fake.dish_category()
             dish_time = fake.dish_meal_time()
             pic = choice([i for i in range(1,11)])
-            product_img = f'p{pic}'
+            product_img = f'restaurant/p{pic}'
 
             Dish.objects.create(
                 restaurant = rest,
