@@ -63,7 +63,7 @@ class Command(BaseCommand):
             phone = fake.phone_number()
             address = fake.address()
             address = address.strip()
-            pic = choice([i for i in range(1,11)])
+            pic = choice([i for i in range(1,20)])
             product_img = f'restaurant/p{pic}'
             Restaurant.objects.create(
                 user = user,
@@ -83,7 +83,7 @@ class Command(BaseCommand):
             title = fake.dish_category()
             category = fake.dish_category()
             dish_time = fake.dish_meal_time()
-            pic = choice([i for i in range(1,11)])
+            pic = choice([i for i in range(1,9)])
             product_img = f'p{pic}'
 
             Dish.objects.create(
