@@ -53,3 +53,9 @@ class OrderSerializer(ModelSerializer):
     class Meta:
         model = Order
         fields = ("id", "customer", "restaurant", "order_details", "total", "address")
+    
+class CartSerializer(ModelSerializer):
+
+    class Meta:
+        model = Cart
+        fields = ('__all__')

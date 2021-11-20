@@ -1,5 +1,6 @@
 from typing import List
 from django.db.models import deletion
+from django.db.models.query_utils import RegisterLookupMixin
 from rest_framework import generics, serializers, status, authentication, permissions
 from core.models import *
 from order.models import *
@@ -37,10 +38,12 @@ class CartView(APIView):
         address = customer.address  
 
         order_details = request.data.get("order_details",)
-
-        order_total = 0
-        for dish in order_details:
-            order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+        try:
+            order_total = 0
+            for dish in order_details:
+                order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+        except:
+            return Response({"status": "Dish doesn't exist"}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
 
         if len(order_details) > 0:
 
@@ -68,6 +71,10 @@ class CartView(APIView):
                 address = address)
 
             for dish in order_details:
+
+                if request.data.get('restaurant_id',) != Dish.objects.get(id = dish["dish_id"]).restaurant.id:
+                    return Response({"status": "Dish from another restaurant"}, status=status.HTTP_400_BAD_REQUEST)
+
                 OrderDetails.objects.create(
                     order = order,
                     dish_id = dish["dish_id"],
@@ -245,26 +252,18 @@ class GetAllCustomerOrder(APIView):
 
 class OrderView(APIView):
 
-    def get(self, request, format=None):
-
-        user = User.objects.get(id = request.user.id)
-
-        if Order.objects.filter(user = user).exists():
-            order = Order.objects.get(user = user)
-        else:
-            order = Order.objects.create(user = user)
-
-        dish = OrderDetails.objects.filter(order = order)
-        serializer = OrderDetailsSerializer(dish, many = True)
-        return Response(serializer.data)
-
-    def put(self, request, format = None):
+    def post(self, request):
             
             user = request.user
+            restaurant_id = request.data.get("restaurant_id")
+            restaurant = Restaurant.objects.get(id = restaurant_id)
             dish = Dish.objects.get(id = request.data.get('dish_id',))
-            cart = Cart.objects.get_or_create(user = user)
-
-            # Cart.objects.
+            cart, created = Cart.objects.get_or_create(user = user, restaurant = restaurant)
             
+            # request_cart = Cart.objects.filter(user=user)
+            # if request_cart.exists():
+            #     order = cart_qs[0]
+            #     order.items.add(order_item)
+            #     return Response(data={'details':"item added to cart"},status=status.HTTP_201_CREATED)
             
             return Response({"status": "Dish added successfully."}, status=status.HTTP_200_OK)

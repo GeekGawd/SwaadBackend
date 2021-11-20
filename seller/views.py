@@ -176,6 +176,9 @@ class SearchViewDish(ListAPIView):
     # def get_queryset(self):
     #     request = self.request
 
+# class FilterDish(ListAPIView):
+
+
 class RestaurantAddDish(APIView):
 
     serializer_class = DishSerializer
@@ -321,7 +324,7 @@ class CustomerRating(APIView):
 class CategoryView(APIView):
 
     serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
+    
     def get(self, request):
         category = request.data.get("category")
         if category is None:

@@ -62,6 +62,7 @@ class Command(BaseCommand):
             rest_name = fake.company()
             phone = fake.phone_number()
             address = fake.address()
+            address = address.strip()
             pic = choice([i for i in range(1,11)])
             product_img = f'Dish_images/p{pic}.jpg'
             Restaurant.objects.create(
