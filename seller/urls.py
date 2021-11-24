@@ -34,6 +34,7 @@ urlpatterns = [
     path('register/', views.CreateSellerView.as_view(), name='register'),
     path('login/', views.LoginAPIView.as_view(), name='login'),
     path('customer/restaurants/', views.CustomerGetRestaurants.as_view()),
+    path('customer/address/', views.ReverseGeocodeView.as_view()),
     path('customer/restaurants/category/', views.CategoryView.as_view()),
     path('customer/restaurants/listrest/', views.SearchViewRestaurant.as_view()),
     path('customer/restaurants/listdish/', views.SearchViewDish.as_view()), 

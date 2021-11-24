@@ -1,5 +1,6 @@
 from django.db.models import query
-from django.http import JsonResponse
+from django.http import JsonResponse, request
+from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
@@ -18,7 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-
+from decouple import config
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     serializer_class = CategorySerializer
 #     queryset = Category.objects.all()
@@ -332,3 +333,15 @@ class CategoryView(APIView):
         query = Dish.objects.filter(category__icontains=category)
         serializer = self.serializer_class(query, many=True, context={'request':request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+from geopy.geocoders import Bing
+
+class ReverseGeocodeView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        latitude = request.data.get("latitude", )
+        longitude = request.data.get("longitude", )
+        geolocator = Bing(api_key=config('BING_API_KEY', default=''))
+        location = geolocator.reverse(f"{latitude}, {longitude}")
+        return Response({"address": location.address})
+        

@@ -18,6 +18,8 @@ channels = "*"
 pyjwt = "*"
 cloudinary = "*"
 django-cloudinary-storage = "*"
+geopy = "*"
+charset-normalizer = "*"
 
 [dev-packages]
 
