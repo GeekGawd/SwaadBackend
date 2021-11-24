@@ -1,6 +1,7 @@
 from django.db.models import fields
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import *
+from seller.models import Restaurant, Dish
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
 
@@ -57,5 +58,5 @@ class OrderSerializer(ModelSerializer):
 class CartSerializer(ModelSerializer):
 
     class Meta:
-        model = Cart
+        model = CartModel
         fields = ('__all__')

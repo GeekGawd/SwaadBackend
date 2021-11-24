@@ -4,6 +4,7 @@ from django.db.models.query_utils import RegisterLookupMixin
 from rest_framework import generics, serializers, status, authentication, permissions
 from core.models import *
 from order.models import *
+from seller.models import Dish, Restaurant
 from order.serializers import CustomerSerializer, OrderDetailsSerializer, OrderSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
@@ -19,70 +20,70 @@ class CartView(APIView):
 
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    # def post(self, request):
 
-        user_id = request.user.id
-        user = request.user
-        request_address_id = request.data.get('delivery_id', )
-        request_address = request.data.get('address', )
+    #     user_id = request.user.id
+    #     user = request.user
+    #     request_address_id = request.data.get('delivery_id', )
+    #     request_address = request.data.get('address', )
 
-        try:
-            customer = Customer.objects.filter(user=user_id)
-            if len(customer)>0 and request_address_id:
-               customer = customer[request_address_id-1]
-            else:
-               customer = customer[0]
-        except:
-            return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
+    #     try:
+    #         customer = Customer.objects.filter(user=user_id)
+    #         if len(customer)>0 and request_address_id:
+    #            customer = customer[request_address_id-1]
+    #         else:
+    #            customer = customer[0]
+    #     except:
+    #         return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
                  
-        address = customer.address  
+    #     address = customer.address  
 
-        order_details = request.data.get("order_details",)
-        try:
-            order_total = 0
-            for dish in order_details:
-                order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-        except:
-            return Response({"status": "Dish doesn't exist"}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
+    #     order_details = request.data.get("order_details",)
+    #     try:
+    #         order_total = 0
+    #         for dish in order_details:
+    #             order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+    #     except:
+    #         return Response({"status": "Dish doesn't exist"}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        if len(order_details) > 0:
+    #     if len(order_details) > 0:
 
-            # if Order.objects.filter(user = user).exists():
-            #     order = Order.objects.update(
-            #         customer = customer,
-            #         restaurant_id = request.data.get('restaurant_id',),
-            #         total = order_total,
-            #         address = address)
+    #         # if Order.objects.filter(user = user).exists():
+    #         #     order = Order.objects.update(
+    #         #         customer = customer,
+    #         #         restaurant_id = request.data.get('restaurant_id',),
+    #         #         total = order_total,
+    #         #         address = address)
                 
-            #     for dish in order_details:
-            #         OrderDetails.objects.update(
-            #             order = order,
-            #             dish_id = dish["dish_id"],
-            #             quantity = dish["quantity"],
-            #             sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-            #         )
+    #         #     for dish in order_details:
+    #         #         OrderDetails.objects.update(
+    #         #             order = order,
+    #         #             dish_id = dish["dish_id"],
+    #         #             quantity = dish["quantity"],
+    #         #             sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+    #         #         )
 
-            #     return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
+    #         #     return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
 
-            order = Order.objects.create(user = user,
-                customer = customer,
-                restaurant_id = request.data.get('restaurant_id',),
-                total = order_total,
-                address = address)
+    #         order = Order.objects.create(user = user,
+    #             customer = customer,
+    #             restaurant_id = request.data.get('restaurant_id',),
+    #             total = order_total,
+    #             address = address)
 
-            for dish in order_details:
+    #         for dish in order_details:
 
-                if request.data.get('restaurant_id',) != Dish.objects.get(id = dish["dish_id"]).restaurant.id:
-                    return Response({"status": "Dish from another restaurant"}, status=status.HTTP_400_BAD_REQUEST)
+    #             if request.data.get('restaurant_id',) != Dish.objects.get(id = dish["dish_id"]).restaurant.id:
+    #                 return Response({"status": "Dish from another restaurant"}, status=status.HTTP_400_BAD_REQUEST)
 
-                OrderDetails.objects.create(
-                    order = order,
-                    dish_id = dish["dish_id"],
-                    quantity = dish["quantity"],
-                    sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-                )
+    #             OrderDetails.objects.create(
+    #                 order = order,
+    #                 dish_id = dish["dish_id"],
+    #                 quantity = dish["quantity"],
+    #                 sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
+    #             )
 
-            return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
+    #         return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
 
     def put(self, request):
             
@@ -252,18 +253,59 @@ class GetAllCustomerOrder(APIView):
 
 class OrderView(APIView):
 
-    def post(self, request):
+    def put(self, request):
             
             user = request.user
-            restaurant_id = request.data.get("restaurant_id")
-            restaurant = Restaurant.objects.get(id = restaurant_id)
+            # restaurant = Restaurant.objects.get(id = restaurant_id)
             dish = Dish.objects.get(id = request.data.get('dish_id',))
-            cart, created = Cart.objects.get_or_create(user = user, restaurant = restaurant)
+            restaurant_id = dish.restaurant.id
+            try:
+                cart, created = CartModel.objects.get_or_create(user = user, restaurant_id = restaurant_id)
+            except:
+                return Response({"status": "Dish from another restaurant cannot be added."},status=status.HTTP_400_BAD_REQUEST)
+            try:
+                order_details = OrderDetails.objects.get(dish = dish)
+            except:
+                order_details = None
             
-            # request_cart = Cart.objects.filter(user=user)
-            # if request_cart.exists():
-            #     order = cart_qs[0]
-            #     order.items.add(order_item)
-            #     return Response(data={'details':"item added to cart"},status=status.HTTP_201_CREATED)
-            
-            return Response({"status": "Dish added successfully."}, status=status.HTTP_200_OK)
+            if order_details is None:
+                request_order_details = OrderDetails.objects.create(
+                    dish_id = request.data.get('dish_id'),
+                    quantity = 1,
+                    sub_total = dish.price
+                )
+                cart.order_details.add(request_order_details)
+
+                return Response({"status": "Dish added successfully."},status=status.HTTP_201_CREATED)
+            else:
+                order_details.quantity = order_details.quantity + 1
+                order_details.sub_total = dish.price * order_details.quantity
+                order_details.save()
+                return Response({"status": "Dish update added successfully."},status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        user = request.user
+        dish = Dish.objects.get(id = request.data.get('dish_id'))
+        try:
+            cart = CartModel.objects.get(user = user)
+        except:
+            return Response({"status": "Cart already deleted."}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            order_details = cart.order_details.get(dish = dish)
+        except:
+            return Response({"status": "No such dish in cart."}, status=status.HTTP_202_ACCEPTED)
+
+        dish_quantity = order_details.quantity
+
+        if dish_quantity > 1:
+            order_details.quantity = order_details.quantity - 1
+            order_details.save()
+            return Response({'status': "Dish quantity reduced successfully."})
+        
+        elif dish_quantity == 1:
+            cart.order_details.get(dish = dish).delete()
+            if len(CartModel.objects.get(user = user).order_details.all()) == 0:
+                cart.delete()
+                return Response({'status': "Cart Deleted successfully."})
+            return Response({'status': "Dish deleted successfully."})

@@ -1,10 +1,11 @@
 from django.db import models
+from django.db.models.fields import IntegerField
 from django.db.models.fields.related import OneToOneField
 from django.utils import timezone, tree
 from django_filters.utils import try_dbfield
 from rest_framework import serializers
-from seller.models import Restaurant, Dish
 from core.models import User
+from seller.models import Dish
 # Create your models here.
 
 
@@ -34,7 +35,7 @@ class Order(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE,)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,)
+    restaurant = models.ForeignKey('seller.Restaurant', on_delete=models.CASCADE,)
     total = models.IntegerField()
     address = models.CharField(max_length=250, null=True)
     # is_paid = models.BooleanField(default=False)
@@ -48,7 +49,7 @@ class Order(models.Model):
 class OrderDetails(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_details', null=True)
     # cart_details = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cart_details')
-    dish = models.ForeignKey(Dish, on_delete=models.CASCADE,)
+    dish = models.ForeignKey('seller.Dish', on_delete=models.CASCADE,)
     quantity = models.IntegerField()
     sub_total = models.IntegerField()
 
@@ -57,10 +58,11 @@ class OrderDetails(models.Model):
         return str(self.id)
 
 
-class Cart(models.Model):
+class CartModel(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
-    dish = models.ForeignKey(Dish, on_delete=models.CASCADE, null=True)
-    restaurant_id = OneToOneField(Restaurant, on_delete=models.CASCADE)
+    # dish = models.ManyToManyField(Dish)
+    order_details = models.ManyToManyField(OrderDetails)
+    restaurant_id = IntegerField()
 
     def __str__(self):
         return self.user.email

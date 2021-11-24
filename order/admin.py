@@ -8,4 +8,4 @@ class CustomerAdmin(admin.ModelAdmin):
 
 admin.site.register(Order)
 admin.site.register(OrderDetails)
-# admin.site.register(Cart)
+admin.site.register(CartModel)

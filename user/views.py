@@ -1,7 +1,7 @@
 
 from re import S
 from rest_framework import generics, serializers, status, authentication, permissions
-from django.shortcuts import redirect, reverse
+from django.shortcuts import redirect, resolve_url, reverse
 from core.models import *
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -142,7 +142,10 @@ class SignUpOTP(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         request_email = request.data.get("email",)
-        user = User.objects.get(email__iexact = request_email)
+        try:
+            user = User.objects.get(email__iexact = request_email)
+        except:
+            return Response({"status": "User is not registered."}, status=status.HTTP_400_BAD_REQUEST)
         if user.is_active is False:
             if request_email:
                 try:
