@@ -185,10 +185,10 @@ class SignUpOTPVerification(APIView):
                 user.is_active = True
                 user.save()
 
-                # return Response(user.tokens(), status=status.HTTP_200_OK)
-                return Response({
-                    'status':'OTP verified, proceed to login.'
-                }, status=status.HTTP_200_OK)
+                return Response(user.tokens(), status=status.HTTP_200_OK)
+                # return Response({
+                #     'status':'OTP verified, proceed to login.'
+                # }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'status':'OTP incorrect.'

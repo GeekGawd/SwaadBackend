@@ -149,9 +149,9 @@ class CheckoutView(APIView):
         for detail in cart.order_details.all():
             detail.order = order
             detail.ordered = True
-            detail.save()
-
-        return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
+            detail.save()           
+        cart.delete()
+        return Response({"status": "Items ordered successfully."}, status=status.HTTP_201_CREATED)
 
     
 
