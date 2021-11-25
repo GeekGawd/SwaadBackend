@@ -21,8 +21,7 @@ class UserManager(BaseUserManager):
         user.is_staff = True
         user.is_superuser = True
         user.is_active = True
-        user.save(using=self._db)
-
+        user.save()
         return user
 
 
@@ -58,5 +57,6 @@ class OTP(models.Model):
     otp = models.IntegerField()
     otp_email = models.EmailField()
     time_created = models.IntegerField()
+    
     def __str__(self):
         return f"{self.otp_email} : {self.otp}"

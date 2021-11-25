@@ -50,11 +50,14 @@ class Command(BaseCommand):
             name = fake.name()
             is_active = True
 
-            User.objects.create(
+            user = User.objects.create(
                 email = mail,
                 name = name,
                 is_active = is_active
             )
+
+            user.set_password("Test@1234")
+            user.save()
 
         for _ in range(1, 16):
             user_id = _
@@ -62,7 +65,7 @@ class Command(BaseCommand):
             rest_name = fake.company()
             phone = fake.phone_number()
             address = fake.address()
-            address = address.strip()
+            address = address.replace("\n", ",")
             pic = choice([i for i in range(1,8)])
             product_img = f'restaurant/p{pic}'
             Restaurant.objects.create(

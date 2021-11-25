@@ -52,8 +52,8 @@ class OrderDetails(models.Model):
     dish = models.ForeignKey('seller.Dish', on_delete=models.CASCADE,)
     quantity = models.IntegerField()
     sub_total = models.IntegerField()
-
-
+    ordered = models.BooleanField(default=False)
+    user = OneToOneField(User, on_delete=models.CASCADE, null=True)
     def __str__(self):
         return str(self.id)
 
@@ -62,7 +62,8 @@ class CartModel(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     # dish = models.ManyToManyField(Dish)
     order_details = models.ManyToManyField(OrderDetails)
-    restaurant_id = IntegerField()
+    restaurant_id = models.IntegerField()
+    order_total = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.email

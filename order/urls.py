@@ -1,5 +1,5 @@
 from django.urls import path
-from order.views import CartView, DeliveryDetails,LatestOrder, DeleteDeliveryDetails, GetAllCustomerOrder, OrderView    
+from order.views import CheckoutView, DeliveryDetails,LatestOrder, DeleteDeliveryDetails, GetAllCustomerOrder, OrderView    
 
 
 urlpatterns = [
@@ -9,5 +9,5 @@ urlpatterns = [
     # path('deletecart/', DeleteCartView.as_view(), name='deletedeliverydetails'),
     path('order/latest', LatestOrder.as_view(), name = 'latest-order' ),
     path('order/all', GetAllCustomerOrder.as_view(), name = 'all-customer-order'),
-    path('checkout/', CartView.as_view(), name = 'checkout'),
+    path('checkout/', CheckoutView.as_view(), name = 'checkout'),
 ]
