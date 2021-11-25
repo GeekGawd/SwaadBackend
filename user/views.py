@@ -1,4 +1,3 @@
-
 from re import S
 from rest_framework import generics, serializers, status, authentication, permissions
 from django.shortcuts import redirect, resolve_url, reverse

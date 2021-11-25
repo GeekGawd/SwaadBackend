@@ -339,9 +339,12 @@ from geopy.geocoders import Bing
 class ReverseGeocodeView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        latitude = request.data.get("latitude", )
-        longitude = request.data.get("longitude", )
+        try:
+            latitude = request.data.get("latitude", )
+            longitude = request.data.get("longitude", )
+        except:
+            return Response({"status": "Please enter a latitude/longitude."}, status=status.HTTP_400_BAD_REQUEST)
         geolocator = Bing(api_key=config('BING_API_KEY', default=''))
         location = geolocator.reverse(f"{latitude}, {longitude}")
-        return Response({"address": location.address})
+        return Response({"address": location.address}, status=status.HTTP_200_OK)
         

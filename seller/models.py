@@ -43,6 +43,7 @@ class Restaurant(models.Model):
     phone = models.CharField(max_length=500)
     address = models.CharField(max_length=500)
     image = models.ImageField(upload_to = 'media/Rest_images', null = True, blank = True)
+    delivery_time = models.IntegerField(default=30)
     # models.URLField(default='https://media.istockphoto.com/photos/modern-restaurant-interior-design-picture-id1211547141?k=20&m=1211547141&s=612x612&w=0&h=KiZX3NBZVCK4MlSh4BJ8hZNSJcTIMbNSSV2yusw2NmM=')
    
 

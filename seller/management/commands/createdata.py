@@ -68,12 +68,14 @@ class Command(BaseCommand):
             address = address.replace("\n", ",")
             pic = choice([i for i in range(1,8)])
             product_img = f'restaurant/p{pic}'
+            delivery_time = randint(31,61)
             Restaurant.objects.create(
                 user = user,
                 rest_name = rest_name,
                 phone = phone,
                 address = address,
-                image = product_img
+                image = product_img,
+                delivery_time = delivery_time
             )
         
         for _ in range(1, 150):
