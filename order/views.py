@@ -190,21 +190,18 @@ class DeliveryDetails(APIView):
 
         try:
             phone = data.get('phone',)
-        except:
-            return Response({'status': 'Kindly enter your phone number'})
-        
-        try:
             address = data.get('address',)
         except:
-            return Response({'status': 'Kindly enter your delivery address'})
+            return Response({'status': 'Kindly enter your address and phone number.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         data['user'] = user_id
-        serializer = self.serializer_class(data=data,context={'request': request} )
+        serializer = self.serializer_class(data=data,context={'request': request})
 
         if serializer.is_valid():
             serializer.save()
-            return Response({'status': 'Customer Delivery Details added successfully'})
-        return Response({'status': 'Failed to Create Customer Details.'})
+            return Response({'status': 'Customer Delivery Details added successfully'},status=status.HTTP_201_CREATED)
+        return Response({'status': 'Failed to Create Customer Details.'},status=status.HTTP_406_NOT_ACCEPTABLE)
 
 class DeleteDeliveryDetails(APIView):
 

@@ -99,3 +99,5 @@ class Command(BaseCommand):
                 Dish_time = dish_time,
                 image = product_img
             )
+        
+        
