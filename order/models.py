@@ -8,9 +8,13 @@ from core.models import User
 from seller.models import Dish
 # Create your models here.
 
+ADDRESS_TYPE = (
+    ('Home', 'Home'), ("Work", 'Work'),
+)
 
 class Customer(models.Model):
     user = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='customer', null=True)
+    address_type = models.CharField(choices=ADDRESS_TYPE, max_length=4, default="Home")
     phone = models.CharField(max_length=500, blank=True)
     address = models.CharField(max_length=500, blank=True)
 

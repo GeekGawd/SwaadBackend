@@ -13,6 +13,7 @@ class CustomerSerializer(ModelSerializer):
             'user',
             'phone',
             'address',
+            'address_type'
         ]
 
 class OrderCustomerSerializer(ModelSerializer):

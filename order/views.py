@@ -194,7 +194,6 @@ class DeliveryDetails(APIView):
         except:
             return Response({'status': 'Kindly enter your address and phone number.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
         data['user'] = user_id
         serializer = self.serializer_class(data=data,context={'request': request})
 
