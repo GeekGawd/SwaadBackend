@@ -321,7 +321,7 @@ class DeleteCartView(APIView):
         try:
             cart = CartModel.objects.get(user=user)
         except:
-            return Response({"status": "Cart already deleted."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "Cart already deleted."}, status=status.HTTP_204_NO_CONTENT)
         
         for details in cart.order_details.filter():
             OrderDetails.objects.get(id=details.id).delete()
