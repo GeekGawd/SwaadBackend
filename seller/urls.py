@@ -44,4 +44,5 @@ urlpatterns = [
     path('restaurant/addmeal', views.RestaurantAddDish.as_view()),
     path('login/otp', views.LoginOTP.as_view(), name = 'loginotp'),
     path('login/verify', views.LoginOTPverification.as_view(), name = 'loginotpverification'),
+    path('search/', include('haystack.urls')),
 ]

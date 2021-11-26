@@ -14,7 +14,7 @@ from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
@@ -347,4 +347,6 @@ class ReverseGeocodeView(APIView):
         geolocator = Bing(api_key=config('BING_API_KEY', default=''))
         location = geolocator.reverse(f"{latitude}, {longitude}")
         return Response({"address": location.address}, status=status.HTTP_200_OK)
+
+
         

@@ -249,7 +249,6 @@ class OrderView(APIView):
             return Response({"status": "Cart doesn't exist."}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = CartViewSerializer(cart)
-
         return Response(serializer.data)
 
     def put(self, request):
@@ -314,3 +313,19 @@ class OrderView(APIView):
                 cart.delete()
                 return Response({'status': "Cart Deleted successfully."})
             return Response({'status': "Dish deleted successfully."})
+
+class DeleteCartView(APIView):
+
+    def delete(self, request):
+        user = request.user
+        try:
+            cart = CartModel.objects.get(user=user)
+        except:
+            return Response({"status": "Cart already deleted."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        for details in cart.order_details.filter():
+            OrderDetails.objects.get(id=details.id).delete()
+        
+        cart.delete()
+
+        return Response({"status": "Cart successfully cleared."}, status=status.HTTP_200_OK)
