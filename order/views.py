@@ -244,11 +244,11 @@ class OrderView(APIView):
     def get(self, request):
         user = request.user
         try:
-            cart = CartModel.objects.filter(user=user)
+            cart = CartModel.objects.get(user=user)
         except:
             return Response({"status": "Cart doesn't exist."}, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer = CartViewSerializer(cart, many=True)
+        serializer = CartViewSerializer(cart)
 
         return Response(serializer.data)
 
