@@ -5,7 +5,7 @@ from rest_framework import generics, serializers, status, authentication, permis
 from core.models import *
 from order.models import *
 from seller.models import Dish, Restaurant
-from order.serializers import CustomerSerializer, OrderDetailsSerializer, OrderSerializer
+from order.serializers import CartViewSerializer, CustomerSerializer, OrderDetailsSerializer, OrderSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
 from rest_framework.permissions import AllowAny
@@ -241,39 +241,50 @@ class GetAllCustomerOrder(APIView):
 
 class OrderView(APIView):
 
+    def get(self, request):
+        user = request.user
+        try:
+            cart = CartModel.objects.filter(user=user)
+        except:
+            return Response({"status": "Cart doesn't exist."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = CartViewSerializer(cart, many=True)
+
+        return Response(serializer.data)
+
     def put(self, request):
             
-            user = request.user
-            # restaurant = Restaurant.objects.get(id = restaurant_id)
-            dish = Dish.objects.get(id = request.data.get('dish_id',))
-            restaurant_id = dish.restaurant.id
-            try:
-                cart, created = CartModel.objects.get_or_create(user = user, restaurant_id = restaurant_id)
-            except:
-                return Response({"status": "Dish from another restaurant cannot be added."},status=status.HTTP_400_BAD_REQUEST)
-            try:
-                order_details = OrderDetails.objects.exclude(ordered=True).get(user=user, dish=dish)
-            except:
-                order_details = None
+        user = request.user
+        # restaurant = Restaurant.objects.get(id = restaurant_id)
+        dish = Dish.objects.get(id = request.data.get('dish_id',))
+        restaurant_id = dish.restaurant.id
+        try:
+            cart, created = CartModel.objects.get_or_create(user = user, restaurant_id = restaurant_id)
+        except:
+            return Response({"status": "Dish from another restaurant cannot be added."},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            order_details = OrderDetails.objects.exclude(ordered=True).get(user=user, dish=dish)
+        except:
+            order_details = None
 
-            if order_details is None:
-                request_order_details = OrderDetails.objects.create(
-                    user = user,
-                    dish_id = request.data.get('dish_id'),
-                    quantity = 1,
-                    sub_total = dish.price
-                )
-                cart.order_details.add(request_order_details)
-                cart.order_total = cart.order_total + dish.price
-                cart.save()
-                return Response({"status": "Dish added successfully."},status=status.HTTP_201_CREATED)
-            else:
-                order_details.quantity = order_details.quantity + 1
-                order_details.sub_total = dish.price * order_details.quantity
-                order_details.save()
-                cart.order_total = cart.order_total + dish.price
-                cart.save()
-                return Response({"status": "Dish update added successfully."},status=status.HTTP_200_OK)
+        if order_details is None:
+            request_order_details = OrderDetails.objects.create(
+                user = user,
+                dish_id = request.data.get('dish_id'),
+                quantity = 1,
+                sub_total = dish.price
+            )
+            cart.order_details.add(request_order_details)
+            cart.order_total = cart.order_total + dish.price
+            cart.save()
+            return Response({"status": "Dish added successfully."},status=status.HTTP_201_CREATED)
+        else:
+            order_details.quantity = order_details.quantity + 1
+            order_details.sub_total = dish.price * order_details.quantity
+            order_details.save()
+            cart.order_total = cart.order_total + dish.price
+            cart.save()
+            return Response({"status": "Dish update added successfully."},status=status.HTTP_200_OK)
 
     def delete(self, request):
         user = request.user

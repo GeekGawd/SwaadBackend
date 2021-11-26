@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'rest_framework',
     'django_filters',
+    'haystack',
     'core',
     'user',
     'seller',
@@ -200,3 +201,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch5_backend.Elasticsearch5SearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    },
+}

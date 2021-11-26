@@ -61,3 +61,10 @@ class CartSerializer(ModelSerializer):
     class Meta:
         model = CartModel
         fields = ('__all__')
+
+class CartViewSerializer(ModelSerializer):
+
+    order_details = OrderDetailsSerializer(many=True)
+    class Meta:
+        model = CartModel
+        fields = ['restaurant_id', 'order_total', 'order_details']
