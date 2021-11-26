@@ -327,5 +327,4 @@ class DeleteCartView(APIView):
             OrderDetails.objects.get(id=details.id).delete()
         
         cart.delete()
-
         return Response({"status": "Cart successfully cleared."}, status=status.HTTP_200_OK)

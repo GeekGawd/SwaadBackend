@@ -1,8 +1,10 @@
 from django.db.models import query
 from django.http import JsonResponse, request
+from django.utils import tree
+from drf_haystack.serializers import HaystackFacetSerializer
 from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
+from rest_framework import filters
 from rest_framework.views import APIView
 from rest_framework import status, viewsets
 from core.models import User
@@ -14,6 +16,7 @@ from core.models import *
 from user.serializers import UserSerializer, AuthTokenSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
+from drf_haystack.viewsets import HaystackViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -168,17 +171,43 @@ class SearchViewDish(ListAPIView):
     serializer_class = DishSerializer
     queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    search_fields = ['title']
+    search_fields = ['title', 'category']
 
     class Meta:
         model = Dish
         fields = ("id", "title", "image", "price", "veg","category")
-    
+
     # def get_queryset(self):
     #     request = self.request
 
 # class FilterDish(ListAPIView):
 
+class CustomSearch(APIView):
+    serializer_class = RestaurantSerializer
+
+    def get(self, request):
+
+        query = request.data.get('search', )
+        try:
+           dish = Dish.objects.filter(title__icontains=query)
+        except:
+           dish = None
+        
+        if dish is None:
+            try:
+                dish = Dish.objects.filter(category__icontains=query)
+            except:
+                dish = None
+        restaurants = []
+        data = []
+        for i in range(len(dish)):
+            restaurants.append(Restaurant.objects.get(id = dish[i].restaurant.id))
+
+        for i in range(len(dish)):
+            serializer = self.serializer_class(restaurants[i])
+            data.append(serializer.data)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 class RestaurantAddDish(APIView):
 
@@ -347,6 +376,3 @@ class ReverseGeocodeView(APIView):
         geolocator = Bing(api_key=config('BING_API_KEY', default=''))
         location = geolocator.reverse(f"{latitude}, {longitude}")
         return Response({"address": location.address}, status=status.HTTP_200_OK)
-
-
-        

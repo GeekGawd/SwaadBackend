@@ -96,11 +96,3 @@ class Rating(models.Model):
     
     def __str__(self) -> str:
         return str(f"{self.user}-->{self.restaurant}-->{self.dish}-->{self.stars}")
-
-# class Favourites(models.Model):
-#     user = models.OneToOneField(User)
-#     dish = models.ManyToManyField(Dish)
-
-
-
-
