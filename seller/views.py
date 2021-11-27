@@ -151,7 +151,7 @@ class CustomerGetRestaurants(APIView, LimitOffsetPagination):
         return self.paginator.get_paginated_response(data)
 
     def get(self, request, *args, **kwargs):
-        instance = Restaurant.objects.all().order_by("?")
+        instance = sorted(Restaurant.objects.all(), key=lambda a:a.avg_rating, reverse=True)
         page = self.paginate_queryset(instance)
         print(type(page))
         if page is not None:
@@ -161,19 +161,22 @@ class CustomerGetRestaurants(APIView, LimitOffsetPagination):
             serializer = self.serializer_class(instance, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class CustomerGetRestaurantDishTimeView(ListAPIView):
+class CustomerGetRestaurantDishTimeView(APIView):
     serializer_class = DishSerializer
-    
-    hour = datetime.datetime.now().time().hour
+    def get(self, request):
 
-    if 6<= hour <= 12:
-        queryset = Dish.objects.filter(Dish_time = 'Breakfast')
+        hour = datetime.datetime.now().time().hour
 
-    elif 12<hour<=18:
-        queryset = Dish.objects.filter(Dish_time = 'Lunch')
+        if 6<= hour <= 12:
+            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Breakfast')[:7], many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-    else:
-        queryset = Dish.objects.filter(Dish_time = 'Dinner')
+        elif 12<hour<=18:
+            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Lunch')[:7], many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Dinner')[:7], many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 class SearchViewRestaurant(ListAPIView):
     serializer_class = RestaurantSerializer
@@ -199,7 +202,7 @@ class SearchViewDish(ListAPIView):
 class CustomSearch(APIView):
     serializer_class = RestaurantSerializer
 
-    def post(self, request):
+    def get(self, request):
 
         query = request.data.get('search', )
         try:
@@ -324,19 +327,16 @@ class CustomerRating(APIView):
     serializer_class = RatingSerializer
 
     def get(self, request):
-        user = print(request.user.id)
-        ratings = RatingSerializer(
-            Rating.objects.get(user = user.id).order_by('id'),
-            many = True,
-            context = {"request": request}
-        ).data
 
-        return Response({"ratings": ratings}, status=status.HTTP_200_OK)
+        ratings = RatingSerializer(Rating.objects.filter(user = request.user), many=True).data,
+        print(ratings)
+        return Response(ratings, status=status.HTTP_200_OK)
 
     def post(self, request, dish_id=None):
  
-        if 'stars' in request.data:
-            stars = request.data['stars']
+        if 'stars' and 'feedback' in request.data:
+            stars = request.data.get("stars")
+            feedback = request.data.get("feedback")
             user_id = request.user.id
             # return Response({'status': user_id}, status=status.HTTP_200_OK)
             user = User.objects.get(id=user_id)
@@ -345,19 +345,21 @@ class CustomerRating(APIView):
             try: 
                 rating = Rating.objects.get(user=user, dish=dish.id)
                 rating.stars = stars
+                rating.feedback = feedback
                 rating.save()
                 serializer = RatingSerializer(rating, many=False)
-                response = {'status': 'Rating updated', 'result': serializer.data}
+                response = {'status': 'Rating/Feedback updated', 'result': serializer.data}
                 return Response(response, status=status.HTTP_200_OK)
 
             except: 
-                rating = Rating.objects.create(user=user, dish=dish, stars=stars, restaurant=restaurant)
+                rating = Rating.objects.create(user=user, dish=dish, stars=stars, restaurant=restaurant,
+                feedback = feedback)
                 serializer = RatingSerializer(rating, many=False)
-                response = {'status': 'Rating created', 'result': serializer.data}
+                response = {'status': 'Rating/Feedback created', 'result': serializer.data}
                 return Response(response, status=status.HTTP_200_OK)
                  
         else:
-            response = {'status': 'You need to provide a rating'}
+            response = {'status': 'You need to provide rating and feedback'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 # class FeaturedDish(APIView):
@@ -369,7 +371,8 @@ class CategoryView(APIView):
 
     serializer_class = CategorySerializer
     
-    def get(self, request, category_name):
+    def post(self, request, category_name):
+
         if category_name is None:
             return Response({"status": "Pass a category name"}, status=status.HTTP_400_BAD_REQUEST)
         query = Dish.objects.filter(category__icontains=category_name)

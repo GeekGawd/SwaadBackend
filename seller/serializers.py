@@ -167,4 +167,15 @@ class CategorySerializer(ModelSerializer):
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
-        fields = ('__all__')
+        fields = ('restaurant', 'dish', 'stars', 'feedback')
+    
+    def to_representation(self, instance):
+        data = super(RatingSerializer, self).to_representation(instance)
+
+        dish_name = Dish.objects.get(id = instance.dish.id).title
+        restaurant_name = Restaurant.objects.get(id = instance.restaurant.id).rest_name
+
+        data["dish_name"] = dish_name
+        data["restaurant_name"] = restaurant_name
+
+        return data

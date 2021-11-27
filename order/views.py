@@ -22,70 +22,6 @@ class CheckoutView(APIView):
 
     permission_classes = [AllowAny]
 
-    # def post(self, request):
-
-    #     user_id = request.user.id
-    #     user = request.user
-    #     request_address_id = request.data.get('delivery_id', )
-    #     request_address = request.data.get('address', )
-
-    #     try:
-    #         customer = Customer.objects.filter(user=user_id)
-    #         if len(customer)>0 and request_address_id:
-    #            customer = customer[request_address_id-1]
-    #         else:
-    #            customer = customer[0]
-    #     except:
-    #         return Response({"status": "Enter your delivery details"}, status=status.HTTP_400_BAD_REQUEST)
-                 
-    #     address = customer.address  
-
-    #     order_details = request.data.get("order_details",)
-    #     try:
-    #         order_total = 0
-    #         for dish in order_details:
-    #             order_total += Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-    #     except:
-    #         return Response({"status": "Dish doesn't exist"}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    #     if len(order_details) > 0:
-
-    #         # if Order.objects.filter(user = user).exists():
-    #         #     order = Order.objects.update(
-    #         #         customer = customer,
-    #         #         restaurant_id = request.data.get('restaurant_id',),
-    #         #         total = order_total,
-    #         #         address = address)
-                
-    #         #     for dish in order_details:
-    #         #         OrderDetails.objects.update(
-    #         #             order = order,
-    #         #             dish_id = dish["dish_id"],
-    #         #             quantity = dish["quantity"],
-    #         #             sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-    #         #         )
-
-    #         #     return Response({"status": "Items updated successfully"}, status=status.HTTP_202_ACCEPTED)
-
-    #         order = Order.objects.create(user = user,
-    #             customer = customer,
-    #             restaurant_id = request.data.get('restaurant_id',),
-    #             total = order_total,
-    #             address = address)
-
-    #         for dish in order_details:
-
-    #             if request.data.get('restaurant_id',) != Dish.objects.get(id = dish["dish_id"]).restaurant.id:
-    #                 return Response({"status": "Dish from another restaurant"}, status=status.HTTP_400_BAD_REQUEST)
-
-    #             OrderDetails.objects.create(
-    #                 order = order,
-    #                 dish_id = dish["dish_id"],
-    #                 quantity = dish["quantity"],
-    #                 sub_total = Dish.objects.get(id = dish["dish_id"]).price * dish["quantity"]
-    #             )
-
-    #         return Response({"status": "Items added successfully"}, status=status.HTTP_201_CREATED)
 
     def post(self, request):
             
@@ -275,20 +211,16 @@ class GetAllCustomerOrder(APIView):
         
         user = request.user
         data = []
-        order_details = {}
-        order_details_copy = {}
 
-        print(Order.objects.filter(user=user)[0].order_details.all()[0])
-        for i in range(len(Order.objects.filter(user=user))):
-            
-            data.append(OrderSerializer(Order.objects.filter(user = user)[i]).data)
-            for j in range(len(Order.objects.filter(user=user)[i].order_details.all())):
-                order_details[j+1] = OrderDetailsSerializer(Order.objects.filter(user=user)[i].order_details.all()[j]).data
-            data.append(order_details)
-            print(data)
+        # print(Order.objects.filter(user=user)[0].order_details.all()[0])
+        # for i in range(len(Order.objects.filter(user=user))):
+        #     data.append(OrderSerializer(Order.objects.filter(user = user)[i]).data)
+        #     for j in range(len(Order.objects.filter(user=user)[i].order_details.all())):
+        #         data.append(OrderDetailsSerializer(Order.objects.filter(user=user)[i].order_details.all()[j]).data)
         # customer = Customer.objects.filter(user=user)
+        order = OrderSerializer(Order.objects.filter(user = user), many=True).data
 
-        return Response(data)
+        return Response(order)
 
 class OrderView(APIView):
 

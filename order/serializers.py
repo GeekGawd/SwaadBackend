@@ -20,12 +20,12 @@ class OrderCustomerSerializer(ModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ("id", "get_name", "phone", "address")
+        fields = ( "get_name", "phone", "address")
 
 class OrderRestaurantSerializer(ModelSerializer):
     class Meta:
         model = Restaurant
-        fields = ("id", "phone", "address")
+        fields = ( "phone", "address")
 
     def to_representation(self, instance):
         data = super(OrderRestaurantSerializer, self).to_representation(instance)
@@ -41,16 +41,18 @@ class OrderDishSerializer(ModelSerializer):
         fields = ("id", "price")
 
 class OrderDetailsSerializer(ModelSerializer):
-    dish = OrderDishSerializer()
 
     class Meta:
         model = OrderDetails
-        fields = ("id", "dish", "quantity", "sub_total")
+        fields = ("quantity", "sub_total")
 
     def to_representation(self, instance):
         data = super(OrderDetailsSerializer, self).to_representation(instance)
-        dish_id = instance.id
+        dish_id = instance.dish.id
         dish_name = Dish.objects.get(id = dish_id).title
+        data["order_detail_id"] = instance.id
+        data['dish_id'] = dish_id
+        data['dish_price'] = Dish.objects.get(id = dish_id).price
         data['dish_name'] = dish_name
 
         return data
@@ -58,11 +60,18 @@ class OrderDetailsSerializer(ModelSerializer):
 class OrderSerializer(ModelSerializer):
     customer = OrderCustomerSerializer()
     restaurant = OrderRestaurantSerializer()
-    # order_details = OrderDetailsSerializer(many=True)
+    order_details = OrderDetailsSerializer(many=True)
 
     class Meta:
         model = Order
-        fields = ("id", "customer", "restaurant", "total", "address", "created_at")
+        fields = ("id", "customer","order_details", "restaurant", "total", "address", "created_at")
+    
+    # def to_representation(self, instance):
+    #     data = super(OrderSerializer, self).to_representation(instance)
+
+    #     data["order_details"] = OrderDetailsSerializer()
+
+    #     return data
     
 class CartSerializer(ModelSerializer):
 

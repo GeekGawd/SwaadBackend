@@ -57,6 +57,7 @@ class Restaurant(models.Model):
         ratings = Rating.objects.filter(restaurant=self)
         return len(ratings)
 
+    @property
     def avg_rating(self):
         sum = 0
         ratings = Rating.objects.filter(restaurant=self)
@@ -64,7 +65,7 @@ class Restaurant(models.Model):
         if len(ratings)>0:
             for rating in ratings:
                 sum += rating.stars
-            return float(sum)/len(ratings)
+            return round(float(sum)/len(ratings),1)
         else:
             return 0
     
@@ -109,6 +110,7 @@ class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     dish = models.ForeignKey(Dish, on_delete=models.CASCADE)
+    feedback = models.TextField()
     stars = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
 
     class Meta:

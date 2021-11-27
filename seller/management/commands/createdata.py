@@ -3,7 +3,7 @@ from django.core.mail import mail_managers
 from django.core.management.base import BaseCommand
 from faker import Faker
 from core.models import User
-from seller.models import Dish, Restaurant
+from seller.models import Dish, Restaurant, Rating
 import faker.providers
 
 CATEGORIES = [
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             address = address.replace("\n", ",")
             pic = choice([i for i in range(1,8)])
             product_img = f'restaurant/p{pic}'
-            delivery_time = randint(31,61)
+            delivery_time = randint(31,60)
             Restaurant.objects.create(
                 user = user,
                 rest_name = rest_name,
@@ -100,5 +100,18 @@ class Command(BaseCommand):
                 image = product_img
             )
         
-        for _ in range(1, 16):
-            pass
+        for _ in range(1, 150):
+
+            user_id = randint(1,15)
+            user = User.objects.get(id = user_id)
+            dish_id = _
+            dish = Dish.objects.get(id = dish_id)
+            restaurant = dish.restaurant
+            stars = randint(1,5)
+            feedback = "Lorem Ipsum"
+
+            Rating.objects.create(user=user,
+            feedback = feedback,
+            dish=dish,
+            stars=stars,
+            restaurant=restaurant)

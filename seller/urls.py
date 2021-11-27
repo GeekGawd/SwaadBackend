@@ -43,7 +43,7 @@ urlpatterns = [
     path('customer/restaurants/listrest/', views.SearchViewRestaurant.as_view()),
     path('customer/restaurants/listdish/', views.SearchViewDish.as_view()), 
     path('customer/rating/<dish_id>', views.CustomerRating.as_view()),
-    path('customer/rating', views.CustomerRating.as_view()),
+    path('customer/rating/', views.CustomerRating.as_view()),
     path('customer/dish/<restaurant_id>/', views.CustomerGetDish.as_view()),
     path('restaurant/addmeal', views.RestaurantAddDish.as_view()),
     path('login/otp', views.LoginOTP.as_view(), name = 'loginotp'),
