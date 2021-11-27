@@ -39,7 +39,7 @@ urlpatterns = [
     path('customer/restaurants/', views.CustomerGetRestaurants.as_view()),
     path('customer/restaurants/dish_time/', views.CustomerGetRestaurantDishTimeView.as_view()),
     path('customer/address/', views.ReverseGeocodeView.as_view()),
-    path('customer/restaurants/category/', views.CategoryView.as_view()),
+    path('customer/restaurants/category/<str:category_name>', views.CategoryView.as_view()),
     path('customer/restaurants/listrest/', views.SearchViewRestaurant.as_view()),
     path('customer/restaurants/listdish/', views.SearchViewDish.as_view()), 
     path('customer/rating/<dish_id>', views.CustomerRating.as_view()),

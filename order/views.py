@@ -274,10 +274,21 @@ class GetAllCustomerOrder(APIView):
     def get(self, request, *args, **kwargs):
         
         user = request.user
-        # customer = Customer.objects.filter(user=user)
-        order = OrderSerializer(Order.objects.filter(user = user).order_by("-created_at"), many=True).data
+        data = []
+        order_details = {}
+        order_details_copy = {}
 
-        return Response({"order": order})
+        print(Order.objects.filter(user=user)[0].order_details.all()[0])
+        for i in range(len(Order.objects.filter(user=user))):
+            
+            data.append(OrderSerializer(Order.objects.filter(user = user)[i]).data)
+            for j in range(len(Order.objects.filter(user=user)[i].order_details.all())):
+                order_details[j+1] = OrderDetailsSerializer(Order.objects.filter(user=user)[i].order_details.all()[j]).data
+            data.append(order_details)
+            print(data)
+        # customer = Customer.objects.filter(user=user)
+
+        return Response(data)
 
 class OrderView(APIView):
 

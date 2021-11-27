@@ -35,13 +35,13 @@ class OrderRestaurantSerializer(ModelSerializer):
 
         return data
 
-class OrderMealSerializer(ModelSerializer):
+class OrderDishSerializer(ModelSerializer):
     class Meta:
         model = Dish
         fields = ("id", "price")
 
 class OrderDetailsSerializer(ModelSerializer):
-    dish = OrderMealSerializer()
+    dish = OrderDishSerializer()
 
     class Meta:
         model = OrderDetails
@@ -58,11 +58,11 @@ class OrderDetailsSerializer(ModelSerializer):
 class OrderSerializer(ModelSerializer):
     customer = OrderCustomerSerializer()
     restaurant = OrderRestaurantSerializer()
-    order_details = OrderDetailsSerializer(many = True)
+    # order_details = OrderDetailsSerializer(many=True)
 
     class Meta:
         model = Order
-        fields = ("id", "customer", "restaurant", "order_details", "total", "address", "created_at")
+        fields = ("id", "customer", "restaurant", "total", "address", "created_at")
     
 class CartSerializer(ModelSerializer):
 

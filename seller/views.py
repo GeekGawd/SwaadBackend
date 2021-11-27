@@ -161,22 +161,19 @@ class CustomerGetRestaurants(APIView, LimitOffsetPagination):
             serializer = self.serializer_class(instance, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class CustomerGetRestaurantDishTimeView(APIView):
+class CustomerGetRestaurantDishTimeView(ListAPIView):
     serializer_class = DishSerializer
-    def get(self, request):
+    
+    hour = datetime.datetime.now().time().hour
 
-        hour = datetime.datetime.now().time().hour
+    if 6<= hour <= 12:
+        queryset = Dish.objects.filter(Dish_time = 'Breakfast')
 
-        if 6<= hour <= 12:
-            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Breakfast'), many = True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+    elif 12<hour<=18:
+        queryset = Dish.objects.filter(Dish_time = 'Lunch')
 
-        elif 12<hour<=18:
-            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Lunch'), many = True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Dinner'), many = True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        queryset = Dish.objects.filter(Dish_time = 'Dinner')
 
 class SearchViewRestaurant(ListAPIView):
     serializer_class = RestaurantSerializer
@@ -372,11 +369,10 @@ class CategoryView(APIView):
 
     serializer_class = CategorySerializer
     
-    def get(self, request):
-        category = request.data.get("category")
-        if category is None:
+    def get(self, request, category_name):
+        if category_name is None:
             return Response({"status": "Pass a category name"}, status=status.HTTP_400_BAD_REQUEST)
-        query = Dish.objects.filter(category__icontains=category)
+        query = Dish.objects.filter(category__icontains=category_name)
         serializer = self.serializer_class(query, many=True, context={'request':request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
