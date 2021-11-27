@@ -199,7 +199,7 @@ class SearchViewDish(ListAPIView):
 class CustomSearch(APIView):
     serializer_class = RestaurantSerializer
 
-    def get(self, request):
+    def post(self, request):
 
         query = request.data.get('search', )
         try:
