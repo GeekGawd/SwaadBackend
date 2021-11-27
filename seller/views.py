@@ -161,6 +161,23 @@ class CustomerGetRestaurants(APIView, LimitOffsetPagination):
             serializer = self.serializer_class(instance, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class CustomerGetRestaurantDishTimeView(APIView):
+    serializer_class = DishSerializer
+    def get(self, request):
+
+        hour = datetime.datetime.now().time().hour
+
+        if 6<= hour <= 12:
+            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Breakfast'), many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        elif 12<hour<=18:
+            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Lunch'), many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer = self.serializer_class(Dish.objects.filter(Dish_time = 'Dinner'), many = True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
 class SearchViewRestaurant(ListAPIView):
     serializer_class = RestaurantSerializer
     queryset = Restaurant.objects.all()
@@ -376,3 +393,5 @@ class ReverseGeocodeView(APIView):
         geolocator = Bing(api_key=config('BING_API_KEY', default=''))
         location = geolocator.reverse(f"{latitude}, {longitude}")
         return Response({"address": location.address}, status=status.HTTP_200_OK)
+
+

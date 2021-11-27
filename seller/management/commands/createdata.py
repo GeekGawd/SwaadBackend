@@ -100,4 +100,5 @@ class Command(BaseCommand):
                 image = product_img
             )
         
-        
+        for _ in range(1, 16):
+            pass

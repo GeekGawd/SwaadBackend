@@ -275,7 +275,7 @@ class GetAllCustomerOrder(APIView):
         
         user = request.user
         # customer = Customer.objects.filter(user=user)
-        order = OrderSerializer(Order.objects.filter(user = user), many=True).data
+        order = OrderSerializer(Order.objects.filter(user = user).order_by("-created_at"), many=True).data
 
         return Response({"order": order})
 

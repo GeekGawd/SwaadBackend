@@ -27,6 +27,14 @@ class OrderRestaurantSerializer(ModelSerializer):
         model = Restaurant
         fields = ("id", "phone", "address")
 
+    def to_representation(self, instance):
+        data = super(OrderRestaurantSerializer, self).to_representation(instance)
+        restaurant_id = instance.id
+        restaurant_name = Restaurant.objects.get(id = restaurant_id).rest_name
+        data['restaurant_name'] = restaurant_name
+
+        return data
+
 class OrderMealSerializer(ModelSerializer):
     class Meta:
         model = Dish
@@ -54,7 +62,7 @@ class OrderSerializer(ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ("id", "customer", "restaurant", "order_details", "total", "address")
+        fields = ("id", "customer", "restaurant", "order_details", "total", "address", "created_at")
     
 class CartSerializer(ModelSerializer):
 
