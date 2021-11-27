@@ -68,3 +68,13 @@ class CartViewSerializer(ModelSerializer):
     class Meta:
         model = CartModel
         fields = ['restaurant_id', 'order_total', 'order_details']
+    
+    def to_representation(self, instance):
+        data = super(CartViewSerializer, self).to_representation(instance)
+
+        restaurant_name = Restaurant.objects.get(id = instance.restaurant_id).rest_name
+
+        data['restaurant_name'] = restaurant_name
+
+        return data
+        

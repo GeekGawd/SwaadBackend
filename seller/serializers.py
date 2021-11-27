@@ -38,6 +38,7 @@ class RestaurantSerializer(ModelSerializer):
             'address',
             'no_of_ratings',
             'avg_rating',
+            'expense_rating'
         ]
 
 class DishSerializer(ModelSerializer):

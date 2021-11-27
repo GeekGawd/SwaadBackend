@@ -1,4 +1,5 @@
 from enum import unique
+import re
 from django.db import models
 # Create your models here.
 from django.db.models import Q
@@ -66,8 +67,28 @@ class Restaurant(models.Model):
             return float(sum)/len(ratings)
         else:
             return 0
+    
+    def expense_rating(self):
+        sum = 0
+        dish = Dish.objects.filter(restaurant=self)
             
-            
+        if len(dish) > 0:
+            for i in dish:
+                sum += i.price
+            avg_price = sum/len(dish)
+        else:
+            return 0
+        
+        if avg_price <= 200:
+            return 1
+        
+        elif 200<avg_price<=400:
+            return 2
+
+        else:
+            return 3 
+
+
 class Dish(models.Model):
     # photo = models.ImageField(upload_to = 'img/Dish_images', blank = True, null = True)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='rest')
