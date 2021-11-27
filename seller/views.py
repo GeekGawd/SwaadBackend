@@ -371,7 +371,7 @@ class CategoryView(APIView):
 
     serializer_class = CategorySerializer
     
-    def post(self, request, category_name):
+    def get(self, request, category_name):
 
         if category_name is None:
             return Response({"status": "Pass a category name"}, status=status.HTTP_400_BAD_REQUEST)
