@@ -1,3 +1,4 @@
+from os import stat
 from typing import List
 from django.db.models import deletion
 from django.db.models.query_utils import RegisterLookupMixin
@@ -90,6 +91,7 @@ class CheckoutView(APIView):
             
         user_id = request.user.id
         user = request.user
+
         request_address_id = request.data.get('delivery_id', )
         request_address = request.data.get('address', )
 
@@ -197,11 +199,49 @@ class DeliveryDetails(APIView):
         data['user'] = user_id
         serializer = self.serializer_class(data=data,context={'request': request})
 
+        customer = Customer.objects.filter(user=request.user)
+
+        if len(customer) > 5:
+            return Response({"status": "You can only enter a maximum of 5 addresses."})
+
+        for i in customer:
+            if address.replace(" ","") == i.address.replace(" ",""):
+                return Response({"status": "You have already entered the following address"}, status=status.HTTP_401_UNAUTHORIZED)
+
         if serializer.is_valid():
             serializer.save()
             return Response({'status': 'Customer Delivery Details added successfully'},status=status.HTTP_201_CREATED)
         return Response({'status': 'Failed to Create Customer Details.'},status=status.HTTP_406_NOT_ACCEPTABLE)
 
+    def put(self, request):
+
+        delivery_details = request.data.get('id', )
+        request_address = request.data.get("address", )
+        request_phone = request.data.get("phone", )
+        request_address_type = request.data.get("address_type",)
+
+
+        if delivery_details:
+            check_delivery_details = Customer.objects.filter(user = request.user)
+            delivery_details = Customer.objects.get(id = delivery_details)
+            
+            if request_address:
+                for i in check_delivery_details:
+                     if request_address.replace(" ","") == i.address.replace(" ",""):
+                        return Response({"status": "You have already entered the following address"}, status=status.HTTP_401_UNAUTHORIZED)
+                delivery_details.address = request_address
+                delivery_details.save()
+
+            if request_phone:
+                delivery_details.phone = request_phone
+                delivery_details.save()
+
+            if request_address_type:
+                delivery_details.address_type = request_address_type
+                delivery_details.save()
+
+            return Response({"status": "Successfully updated delivery details."})
+        return Response({"status": "Please enter the delivery id to edit."})
 class DeleteDeliveryDetails(APIView):
 
     def delete(self, request, delivery_id):

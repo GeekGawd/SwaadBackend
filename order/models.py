@@ -71,6 +71,11 @@ class CartModel(models.Model):
 
     def __str__(self):
         return self.user.email
+    
+    def total(self):
+        
+        total = (self.order_total * 18)/100
+        
 
 # class CartDetail(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
