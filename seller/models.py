@@ -80,13 +80,13 @@ class Restaurant(models.Model):
             return 0
         
         if avg_price <= 200:
-            return 1
+            return "$"
         
         elif 200<avg_price<=400:
-            return 2
+            return "$$"
 
         else:
-            return 3 
+            return "$$$" 
 
 
 class Dish(models.Model):
