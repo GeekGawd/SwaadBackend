@@ -111,7 +111,7 @@ class LoginAPIView(APIView):
             user1 = User.objects.get(email__iexact = request_email)
         except: 
             return Response({'status':'User not registered'}, status=status.HTTP_400_BAD_REQUEST)
-        if user1.is_active:
+        if user1.is_active and user1.is_seller:
             serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -381,9 +381,6 @@ class CustomerRating(APIView):
         else:
             return Response({"status": "Please enter a dish you have rated."})
         
-
-
-
 class RestaurantGetRating(APIView):
     serializer_class = RatingSerializer
 
@@ -395,12 +392,6 @@ class RestaurantGetRating(APIView):
             return Response(ratings, status=status.HTTP_200_OK)
         else:
             return Response({"status": "Please enter a restaurant id."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class FeaturedDish(APIView):
-#     serializer_class = 
-
-#     def get(self, request):
 
 class CategoryView(APIView):
 
