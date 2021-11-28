@@ -42,6 +42,7 @@ urlpatterns = [
     path('customer/restaurants/category/<str:category_name>', views.CategoryView.as_view()),
     path('customer/restaurants/listrest/', views.SearchViewRestaurant.as_view()),
     path('customer/restaurants/listdish/', views.SearchViewDish.as_view()), 
+    path('customer/restaurants/rating/', views.RestaurantGetRating.as_view()), 
     path('customer/rating/<dish_id>', views.CustomerRating.as_view()),
     path('customer/rating/', views.CustomerRating.as_view()),
     path('customer/dish/<restaurant_id>/', views.CustomerGetDish.as_view()),

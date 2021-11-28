@@ -1,3 +1,4 @@
+from os import stat
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.views import APIView
@@ -334,8 +335,7 @@ class CustomerRating(APIView):
 
     def get(self, request):
 
-        ratings = RatingSerializer(Rating.objects.filter(user = request.user), many=True).data,
-        print(ratings)
+        ratings = RatingSerializer(Rating.objects.filter(user = request.user), many=True).data
         return Response(ratings, status=status.HTTP_200_OK)
 
     def post(self, request, dish_id=None):
@@ -367,6 +367,35 @@ class CustomerRating(APIView):
         else:
             response = {'status': 'You need to provide rating and feedback'}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):
+        dish = request.data.get("dish_id")
+        if dish:
+            try:
+                rating = Rating.objects.get(user = request.user, dish = dish)
+            except:
+                return Response({"status": "Rating doesn't exist."}, status=status.HTTP_204_NO_CONTENT)
+            
+            rating.delete()
+            return Response({"status": "Your rating has been deleted successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"status": "Please enter a dish you have rated."})
+        
+
+
+
+class RestaurantGetRating(APIView):
+    serializer_class = RatingSerializer
+
+    def get(self, request):
+        rest_id = request.data.get("restaurant_id")
+        if rest_id:
+            ratings = RatingSerializer(Rating.objects.filter(restaurant = Restaurant.objects.get(id = rest_id)), many=True).data
+            
+            return Response(ratings, status=status.HTTP_200_OK)
+        else:
+            return Response({"status": "Please enter a restaurant id."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # class FeaturedDish(APIView):
 #     serializer_class = 

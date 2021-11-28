@@ -171,10 +171,11 @@ class RatingSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         data = super(RatingSerializer, self).to_representation(instance)
-
+        user_id = instance.user.id
         dish_name = Dish.objects.get(id = instance.dish.id).title
         restaurant_name = Restaurant.objects.get(id = instance.restaurant.id).rest_name
 
+        data['user_name'] = User.objects.get(id = user_id).name
         data["dish_name"] = dish_name
         data["restaurant_name"] = restaurant_name
 
