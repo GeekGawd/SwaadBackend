@@ -45,6 +45,10 @@ class LoginAPIView(APIView):
             user1 = User.objects.get(email__iexact = request_email)
         except: 
             return Response({'status':'User not registered'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if user1.is_seller is True:
+            return Response({"status": "You cannot login with merchant email."}, status=status.HTTP_400_BAD_REQUEST)
+
         if user1.is_active is True:
             serializer = AuthTokenSerializer(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)

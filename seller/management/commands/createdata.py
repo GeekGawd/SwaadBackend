@@ -77,6 +77,8 @@ class Command(BaseCommand):
                 image = product_img,
                 delivery_time = delivery_time
             )
+            user.is_seller = True
+            user.save()
         
         for _ in range(1, 150):
             rest_id = randint(1, 15)
@@ -90,6 +92,8 @@ class Command(BaseCommand):
             dish_time = fake.dish_meal_time()
             pic = choice([i for i in range(1,20)])
             product_img = f'p{pic}'
+            veg = choice([True, False])
+            delivery_time = randint(31,60)
 
             Dish.objects.create(
                 restaurant = rest,
@@ -97,7 +101,9 @@ class Command(BaseCommand):
                 title = title,
                 category = category,
                 Dish_time = dish_time,
-                image = product_img
+                image = product_img,
+                veg = veg,
+                delivery_time = delivery_time
             )
         
         for _ in range(1, 150):

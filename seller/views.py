@@ -1,8 +1,3 @@
-from django.db.models import query
-from django.http import JsonResponse, request
-from django.utils import tree
-from drf_haystack.serializers import HaystackFacetSerializer
-from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.views import APIView
@@ -13,7 +8,7 @@ from .serializers import *
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.generics import ListAPIView
 from core.models import *
-from user.serializers import UserSerializer, AuthTokenSerializer
+from user.serializers import UserSerializer
 from django.core.mail import send_mail, EmailMessage
 import random, time, datetime
 from drf_haystack.viewsets import HaystackViewSet
@@ -23,6 +18,7 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from decouple import config
+from django_filters import FilterSet
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     serializer_class = CategorySerializer
 #     queryset = Category.objects.all()
@@ -47,7 +43,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
 
 class CreateSellerView(APIView):
-    """Create a new user in the system"""
+
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
     def post(self, request):
@@ -60,12 +56,12 @@ class CreateSellerView(APIView):
             serializer1 = self.serializer_class(data = data)
             if serializer1.is_valid():
                 user = serializer1.save()
+                user.is_seller = True
+                user.save()
+            
             
             id1 = user.id
-            # try:
-            #     user = User.objects.filter(id=id1)[0]
-            # except:
-            #     raise Http404
+            
 
             data['user'] = id1
             serializer2 = RestaurantSerializer(data = data)
@@ -105,7 +101,6 @@ class CreateSellerView(APIView):
 #             })
 
 class LoginAPIView(APIView):
-    serializer_class = AuthTokenSerializer
     permission_classes = [AllowAny]
     
     def post(self, request):
@@ -184,12 +179,23 @@ class SearchViewRestaurant(ListAPIView):
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     search_fields = ['rest_name']
 
+class DishFilter(FilterSet):
+    class Meta:
+        model = Dish
+        fields = {  
+            'price': ['lt', 'gt'],
+            'veg': ['exact'],
+            'category': ['exact']
+        }
+
 class SearchViewDish(ListAPIView):
     serializer_class = DishSerializer
     queryset = Dish.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     search_fields = ['title', 'category']
-
+    # filter_fields = ['delivery_time', 'veg']
+    filterset_class = DishFilter
+    ordering_fields = ['price', 'delivery_time']
     class Meta:
         model = Dish
         fields = ("id", "title", "image", "price", "veg","category")
