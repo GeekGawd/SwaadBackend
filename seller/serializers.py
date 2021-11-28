@@ -41,18 +41,18 @@ class RestaurantSerializer(ModelSerializer):
             'expense_rating'
         ]
 
-class DishSerializer(ModelSerializer):
-    class Meta:
-        model = Dish
-        fields = [
-            'id',
-            'image',
-            'title',
-            'price',
-            'category',
-            'veg',
-            'restaurant',
-        ]
+# class DishSerializer(ModelSerializer):
+#     class Meta:
+#         model = Dish
+#         fields = [
+#             'id',
+#             'image',
+#             'title',
+#             'price',
+#             'category',
+#             'veg',
+#             'restaurant'
+#         ]
 
 class AllInfoSerializer(ModelSerializer):
     # category = CategorySerializer
@@ -134,7 +134,7 @@ class DishSerializer(ModelSerializer):
 
     class Meta:
         model = Dish
-        fields = ("id", "title", "image", "price", "veg","category")
+        fields = ("id", "title", "image", "price", "veg","category", "avg_rating_dish")
 
     def to_representation(self, instance):
         data = super(DishSerializer, self).to_representation(instance)

@@ -105,6 +105,17 @@ class Dish(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def avg_rating_dish(self):
+        sum = 0
+        ratings = Rating.objects.filter(dish=self)
+        print(ratings)
+        if len(ratings)>0:
+            for rating in ratings:
+                sum += rating.stars
+            return round(float(sum)/len(ratings),1)
+        else:
+            return 0
 
 class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
