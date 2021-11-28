@@ -134,9 +134,8 @@ class PasswordResetOTPConfirm(APIView):
             if (request_email != email):
                 return Response({"status" : "Sorry, entered OTP doesn't belong to your email id."},status = status.HTTP_401_UNAUTHORIZED)
             
-            serializer = AuthTokenSerializer(data=request.data, context={'request': request})
-            serializer.is_valid(raise_exception=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+           
+            return Response({"status": "OTP Correct, proceed to change your password. "} , status=status.HTTP_200_OK)
 
         return Response({"status": "Please Provide an email address"},status = status.HTTP_400_BAD_REQUEST)
 
